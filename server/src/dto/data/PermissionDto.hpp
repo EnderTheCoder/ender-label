@@ -6,6 +6,8 @@
 #define PERMISSIONDTO_HPP
 
 
+#include <oatpp/codegen/dto/base_define.hpp>
+
 #include "oatpp/core/macro/codegen.hpp"
 #include "oatpp/core/Types.hpp"
 #include OATPP_CODEGEN_BEGIN(DTO)
@@ -16,7 +18,9 @@ namespace ender_label::dto::data {
 
         DTO_FIELD(Int32, id);
 
-        DTO_FIELD(String, name);
+        DTO_FIELD(String, key);
+
+        DTO_FIELD(String, desc);
     };
 }
 

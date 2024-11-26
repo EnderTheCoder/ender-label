@@ -14,7 +14,7 @@ namespace ender_label::dto::data {
         DTO_FIELD(Int32, id);
         DTO_FIELD(Int32, owner_id);
         DTO_FIELD(String, name);
-        DTO_FIELD(String, description);
+        DTO_FIELD(String, desc);
         DTO_FIELD(UnorderedSet<String>, img_files);
         DTO_FIELD(UnorderedSet<Int32>, annotation_ids);
     };
