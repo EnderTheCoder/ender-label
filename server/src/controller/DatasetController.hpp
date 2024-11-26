@@ -6,6 +6,8 @@
 #define DATASETCONTROLLER_HPP
 #include "service/dataset/BaseDataset.hpp"
 #include "service/dataset/annotation/Annotation.hpp"
+#include OATPP_CODEGEN_BEGIN(ApiController)
+
 namespace ender_label::controller {
     using namespace service;
 
@@ -23,6 +25,20 @@ namespace ender_label::controller {
         }
 
     public:
+        ENDPOINT("GET", "/dataset/add", addDataset) {
+        }
+
+        ENDPOINT("GET", "/dataset/rm", rmDataset) {
+        }
+
+        ENDPOINT("GET", "/dataset/ls", listDataset) {
+        }
+
+        ENDPOINT("GET", "/dataset/ch", chDataset) {
+        }
+
+        ENDPOINT("GET", "/dataset/info", getDataset) {
+        }
     };
 }
 
