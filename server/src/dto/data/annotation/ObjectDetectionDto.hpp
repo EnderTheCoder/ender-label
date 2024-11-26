@@ -1,0 +1,37 @@
+//
+// Created by ender on 11/26/24.
+//
+
+#ifndef BBOXDTO_HPP
+#define BBOXDTO_HPP
+
+
+#include <oatpp/codegen/dto/base_define.hpp>
+#include <oatpp/codegen/dto/base_define.hpp>
+#include <oatpp/codegen/dto/base_define.hpp>
+
+#include "oatpp/core/macro/codegen.hpp"
+#include "oatpp/core/Types.hpp"
+
+#include OATPP_CODEGEN_BEGIN(DTO)
+
+namespace ender_label::dto::data::annotation {
+    class ObjectDetectionDto : public oatpp::DTO {
+    private:
+        class BoundingDto : public oatpp::DTO {
+            DTO_INIT(BoundingDto, DTO)
+
+            DTO_FIELD(Int32, cls_id);
+
+            DTO_FIELD(List<Float64>, normalized_xyxy);
+        };
+    public:
+        DTO_INIT(ObjectDetectionDto, DTO)
+
+        DTO_FIELD(List<BoundingDto>, bboxes);
+    };
+}
+
+#include OATPP_CODEGEN_END(DTO)
+
+#endif //BBOXDTO_HPP

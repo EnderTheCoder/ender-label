@@ -19,9 +19,9 @@ namespace ender_label::dto::data::annotation {
 
             DTO_FIELD(Int32, cls_id);
 
-            DTO_FIELD(Float64, x);
+            DTO_FIELD(Float64, normalized_x);
 
-            DTO_FIELD(Float64, y);
+            DTO_FIELD(Float64, normalized_y);
         };
 
     public:
