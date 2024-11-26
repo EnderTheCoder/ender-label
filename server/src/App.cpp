@@ -1,0 +1,44 @@
+//
+// Created by ender on 23-7-23.
+//
+#include "AppComponent.hpp"
+
+#include "oatpp/network/Server.hpp"
+#include "ServiceComponent.hpp"
+#include "DatabaseComponent.hpp"
+#include "controller/DefaultController.hpp"
+#include "ClientComponent.hpp"
+#include "SwaggerComponent.hpp"
+#include "oatpp-swagger/Controller.hpp"
+void run(const oatpp::base::CommandLineArguments& args) {
+    ender_label::component::AppComponent appComponent(args);
+    ender_label::component::DatabaseComponent databaseComponent;
+    ender_label::component::ClientComponent clientComponent;
+    ender_label::component::ServiceComponent serviceComponent;
+    ender_label::component::SwaggerComponent swaggerComponent;
+
+    OATPP_LOGI("Version", VERSION)
+    OATPP_LOGD("Server", "Running on %s:%s", serviceComponent.serverConnectionProvider.getObject()->getProperty("host").toString()->c_str(), serviceComponent.serverConnectionProvider.getObject()->getProperty("port").toString()->c_str());
+
+    auto router = serviceComponent.httpRouter.getObject();
+    oatpp::web::server::api::Endpoints endpoints;
+    // append more endpoints here
+    endpoints.append(router->addController(ender_label::controller::DefaultController::createShared())->getEndpoints());
+    // swagger is only enabled in dev env.
+    OATPP_COMPONENT(oatpp::Object<ender_label::dto::ConfigDto>, config);
+    if (config->config_type == "development") router->addController(oatpp::swagger::Controller::createShared(endpoints));
+    // start sync server
+    oatpp::network::Server server(serviceComponent.serverConnectionProvider.getObject(),serviceComponent.serverConnectionHandler.getObject());
+    server.run();
+
+}
+
+/**
+ *  main
+ */
+int main(const int argc, const char * argv[]) {
+    oatpp::base::Environment::init();
+    run(oatpp::base::CommandLineArguments(argc, argv));
+    oatpp::base::Environment::destroy();
+    return 0;
+}

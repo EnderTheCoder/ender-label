@@ -1,0 +1,11 @@
+//
+// Created by ender on 23-7-22.
+//
+
+#ifndef ENDER_LABEL_RESPONSEUTIL_HPP
+#define ENDER_LABEL_RESPONSEUTIL_HPP
+
+#define SUCCESS_MESSAGE 100;
+#define SUCCESS_CODE 100;
+
+#endif //ENDER_LABEL_RESPONSEUTIL_HPP
