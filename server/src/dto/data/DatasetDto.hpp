@@ -4,10 +4,11 @@
 
 #ifndef DATASETDTO_HPP
 #define DATASETDTO_HPP
-
+#include "annotation/AnnotationClassDto.hpp"
 #include "oatpp/core/macro/codegen.hpp"
 #include "oatpp/core/Types.hpp"
 #include OATPP_CODEGEN_BEGIN(DTO)
+
 namespace ender_label::dto::data {
     class DatasetDto : public oatpp::DTO {
         DTO_INIT(DatasetDto, DTO)
@@ -17,8 +18,10 @@ namespace ender_label::dto::data {
         DTO_FIELD(String, desc);
         DTO_FIELD(UnorderedSet<String>, img_files);
         DTO_FIELD(UnorderedSet<Int32>, annotation_ids);
+        DTO_FIELD(List<Int32>, class_ids);
     };
 }
+
 #include OATPP_CODEGEN_END(DTO)
 
 
