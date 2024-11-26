@@ -32,7 +32,6 @@ namespace ender_label::controller {
         }
 
         ENDPOINT("GET", "/user/rm", rmUser) {
-
         }
 
         ENDPOINT("GET", "/user/info", getUser) {

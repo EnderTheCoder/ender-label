@@ -7,7 +7,7 @@
 
 #include "service/ServiceBean.hpp"
 #include "dto/data/AnnotationDto.hpp"
-
+#include "dto/data/annotation/SegmentationAnnotationDto.hpp"
 namespace ender_label::service::dataset::annotation {
     constexpr char table_name[] = "annotation";
 
