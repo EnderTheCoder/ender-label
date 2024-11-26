@@ -10,6 +10,7 @@
 #include "ClientComponent.hpp"
 #include "SwaggerComponent.hpp"
 #include "oatpp-swagger/Controller.hpp"
+#include "controller/DatasetController.hpp"
 void run(const oatpp::base::CommandLineArguments& args) {
     ender_label::component::AppComponent appComponent(args);
     ender_label::component::DatabaseComponent databaseComponent;
