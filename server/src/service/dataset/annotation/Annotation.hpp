@@ -11,7 +11,7 @@
 namespace ender_label::service::dataset::annotation {
     constexpr char table_name[] = "annotation";
 
-    class Annotation : public ServiceBean<table_name, AnnotationDto> {
+    class Annotation : public ServiceBean<table_name, data::AnnotationDto> {
     public:
 
     };
