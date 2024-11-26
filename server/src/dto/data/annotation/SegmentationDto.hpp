@@ -5,15 +5,13 @@
 #ifndef SEGMENTATIONANNOTATIONDTO_HPP
 #define SEGMENTATIONANNOTATIONDTO_HPP
 
-#include <oatpp/codegen/dto/base_define.hpp>
-
 #include "oatpp/core/macro/codegen.hpp"
 #include "oatpp/core/Types.hpp"
 
 #include OATPP_CODEGEN_BEGIN(DTO)
 
 namespace ender_label::dto::data::annotation {
-    class SegmentationAnnotationDto : public oatpp::DTO {
+    class SegmentationDto : public oatpp::DTO {
     private:
         class PolygonDto : public oatpp::DTO {
             DTO_INIT(PolygonDto, DTO)
@@ -30,11 +28,11 @@ namespace ender_label::dto::data::annotation {
             DTO_FIELD(Int32, cls_id);
 
             // UnorderedSet[pixels] -> List[x, y] -> Int32[0 < val < (image's w or h)]
-            DTO_FIELD(UnorderedSet<List<Int32>>, pixels);
+            DTO_FIELD(List<List<Int32>>, pixels);
         };
 
     public:
-        DTO_INIT(SegmentationAnnotationDto, DTO)
+        DTO_INIT(SegmentationDto, DTO)
 
         DTO_FIELD(List<Object<PolygonDto>>, polygons);
 
