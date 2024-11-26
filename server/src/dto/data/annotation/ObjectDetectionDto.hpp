@@ -6,9 +6,9 @@
 #define BBOXDTO_HPP
 
 
-#include <oatpp/codegen/dto/base_define.hpp>
-#include <oatpp/codegen/dto/base_define.hpp>
-#include <oatpp/codegen/dto/base_define.hpp>
+
+
+
 
 #include "oatpp/core/macro/codegen.hpp"
 #include "oatpp/core/Types.hpp"

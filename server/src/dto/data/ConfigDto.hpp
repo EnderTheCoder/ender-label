@@ -4,9 +4,6 @@
 
 #ifndef ENDER_LABEL_CONFIGDTO_HPP
 #define ENDER_LABEL_CONFIGDTO_HPP
-
-#include <oatpp/codegen/dto/base_define.hpp>
-
 #include "oatpp/core/macro/codegen.hpp"
 #include "oatpp/core/Types.hpp"
 #include OATPP_CODEGEN_BEGIN(DTO)
