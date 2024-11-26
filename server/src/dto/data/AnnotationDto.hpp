@@ -17,6 +17,8 @@ namespace ender_label::dto::data {
 
         DTO_FIELD(String, img_name);
 
+        DTO_FIELD(String, type);
+
         DTO_FIELD(String, raw_json);
     };
 }
