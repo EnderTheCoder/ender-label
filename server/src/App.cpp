@@ -32,7 +32,7 @@ void run(const oatpp::base::CommandLineArguments &args) {
     // append more endpoints here
     endpoints.append(router->addController(ender_label::controller::DefaultController::createShared())->getEndpoints());
     // swagger is only enabled in dev env.
-    OATPP_COMPONENT(oatpp::Object<ender_label::dto::ConfigDto>, config);
+    OATPP_COMPONENT(oatpp::Object<ender_label::dto::data::ConfigDto>, config);
     if (config->config_type == "development")
         router->
                 addController(oatpp::swagger::Controller::createShared(endpoints));

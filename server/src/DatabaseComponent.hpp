@@ -18,7 +18,7 @@ namespace ender_label::component {
          */
         OATPP_CREATE_COMPONENT(std::shared_ptr<PgDb>, dbComponent)([] {
 
-            const OATPP_COMPONENT(oatpp::Object<ConfigDto>, config); // Get config component
+            const OATPP_COMPONENT(oatpp::Object<dto::data::ConfigDto>, config); // Get config component
 
             /* Create database-specific ConnectionProvider */
             const auto connectionProvider = std::make_shared<oatpp::postgresql::ConnectionProvider>(config->db);

@@ -25,7 +25,7 @@ namespace ender_label::component {
          *  Create ConnectionProvider component which listens on the port
          */
         OATPP_CREATE_COMPONENT(std::shared_ptr<oatpp::network::ServerConnectionProvider>, serverConnectionProvider)([] {
-            const OATPP_COMPONENT(oatpp::Object<ConfigDto>, configComponent); // Get config component
+            const OATPP_COMPONENT(oatpp::Object<dto::data::ConfigDto>, configComponent); // Get config component
             return oatpp::network::tcp::server::ConnectionProvider::createShared(
                     {configComponent->host, configComponent->port, oatpp::network::Address::UNSPEC});
         }());

@@ -22,8 +22,8 @@ namespace ender_label::component {
 
         std::shared_ptr<OutgoingResponse>
         handleError(const Status &status, const oatpp::String &message, const Headers &headers) override {
-            const OATPP_COMPONENT(oatpp::Object<ConfigDto>, config);
-            const auto error = StatusDto::createShared();
+            const OATPP_COMPONENT(oatpp::Object<dto::data::ConfigDto>, config);
+            const auto error = dto::StatusDto::createShared();
             error->status = "ERROR";
             error->code = status.code;
             error->message = message;

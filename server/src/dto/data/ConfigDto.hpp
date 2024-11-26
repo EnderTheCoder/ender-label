@@ -11,7 +11,7 @@
 #include "oatpp/core/Types.hpp"
 #include OATPP_CODEGEN_BEGIN(DTO)
 
-namespace ender_label::dto {
+namespace ender_label::dto::data {
     class ConfigDto final : public oatpp::DTO {
         DTO_INIT(ConfigDto, oatpp::DTO)
         DTO_FIELD(String, host);

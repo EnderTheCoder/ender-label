@@ -30,7 +30,7 @@ namespace ender_label::component {
         /**
        * This should be configured through config-server ex. Consul
        */
-        OATPP_CREATE_COMPONENT(oatpp::Object<ConfigDto>, config)([this] {
+        OATPP_CREATE_COMPONENT(oatpp::Object<data::ConfigDto>, config)([this] {
             const auto objectMapper = oatpp::parser::json::mapping::ObjectMapper::createShared();
 
             const char *config_path = std::getenv("CONFIG_PATH"); // first read from env variable
@@ -41,7 +41,7 @@ namespace ender_label::component {
             }
 
             if (const oatpp::String configText = oatpp::String::loadFromFile(config_path)) {
-                const auto profiles = objectMapper->readFromString<oatpp::Fields<oatpp::Object<ConfigDto> > >(configText);
+                const auto profiles = objectMapper->readFromString<oatpp::Fields<oatpp::Object<data::ConfigDto> > >(configText);
 
                 const char *profileArg = std::getenv("CONFIG_PROFILE"); // first read from env variable
                 if (profileArg == nullptr) {

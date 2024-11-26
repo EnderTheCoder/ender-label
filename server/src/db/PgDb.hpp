@@ -15,7 +15,7 @@ namespace ender_label::db {
     public:
         explicit PgDb(const std::shared_ptr<oatpp::orm::Executor> &executor)
             : DbClient(executor) {
-            OATPP_COMPONENT(oatpp::Object<dto::ConfigDto>, config);
+            OATPP_COMPONENT(oatpp::Object<dto::data::ConfigDto>, config);
             oatpp::orm::SchemaMigration migration(executor, "ender_label");
             migration.addFile(1, config->migrations + "/...sql");
             migration.migrate();
