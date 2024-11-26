@@ -27,7 +27,7 @@ namespace ender_label::dto::data::annotation {
 
             DTO_FIELD(Int32, cls_id);
 
-            // UnorderedSet[pixels] -> List[x, y] -> Int32[0 < val < (image's w or h)]
+            // List[pixels] -> List[x, y] -> Int32[0 < val < (image's w or h)]
             DTO_FIELD(List<List<Int32>>, pixels);
         };
 
