@@ -37,7 +37,7 @@ namespace ender_label::controller {
             const auto users = user::User::toWrappedList(user::User::getByField("username", req->username, true));
             if (users.empty() or users.front()->getDto()->password != req->password) {
                 resp->code = -100;
-                resp->data = "Wrong username or password";
+                resp->message = "Wrong username or password";
                 return createDtoResponse(Status::CODE_200,resp);
             }
             resp->data = users.front()->getDto();
@@ -48,23 +48,32 @@ namespace ender_label::controller {
 
         }
 
-        ENDPOINT("GET", "/user/permission/ch", chPermission, AUTH_HEADER) {
-            AUTH(authorization)
+        ENDPOINT("GET", "/user/permission/ch", chPermission, AUTH_HEADER, BODY_DTO(Object<UnorderedSet<Int32>>, perms)) {
+            AUTH
             if (!USER->hasPerm("ROOT")) {
                 ERROR(Status::CODE_403, "Permission denied.")
             }
-
-
-
+            const auto dto = data::UserDto::createShared();
+            USER->overwrite(dto);
+            return createDtoResponse(Status::CODE_200, BaseResponseDto::createShared());
         }
 
-        ENDPOINT("GET", "/user/add", addUser) {
+        ENDPOINT("GET", "/user/add", addUser, AUTH_HEADER) {
+            AUTH
+            if (!USER->hasPerm("ROOT")) {
+                ERROR(Status::CODE_403, "Permission denied.")
+            }
         }
 
-        ENDPOINT("GET", "/user/rm", rmUser) {
+        ENDPOINT("GET", "/user/rm", rmUser, AUTH_HEADER) {
+            AUTH
+            if (!USER->hasPerm("ROOT")) {
+                ERROR(Status::CODE_403, "Permission denied.")
+            }
         }
 
-        ENDPOINT("GET", "/user/info", getUser) {
+        ENDPOINT("GET", "/user/info", getUser, AUTH_HEADER) {
+            AUTH
         }
     };
 }

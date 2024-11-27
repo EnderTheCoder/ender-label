@@ -138,7 +138,7 @@ namespace ender_label::service {
             if (std::holds_alternative<std::vector<std::shared_ptr<ServiceBean> > >(list)) {
                 return std::get<std::vector<std::shared_ptr<ServiceBean> > >(list);
             }
-            return nullptr;
+            return {};
         }
 
         static std::variant<std::vector<std::shared_ptr<ServiceBean> >, Vector<Object<DTO_TYPE> > >

@@ -5,14 +5,14 @@
 #ifndef AUTHUTIL_HPP
 #define AUTHUTIL_HPP
 #include "service/user/User.hpp"
-
-#define AUTH(SESS) \
-    auto _user = ender_label::util::get_current_user(SESS); \
+#include "oatpp/codegen/ApiController_define.hpp"
+#define AUTH \
+    auto _user = ender_label::util::get_current_user(_authorization); \
     if (_user == nullptr) {throw web::protocol::http::HttpError(oatpp::web::protocol::http::Status::CODE_403, "Permission denied."); }
 
 #define USER _user
 
-#define AUTH_HEADER HEADER(String, authorization, 'Authorization')
+#define AUTH_HEADER HEADER(String, _authorization, "Authorization")
 
 namespace ender_label::util {
     std::shared_ptr<service::user::User> get_current_user(auto sess) {
