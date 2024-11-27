@@ -26,9 +26,10 @@ namespace ender_label::dto::data::annotation {
             DTO_FIELD(List<Float64>, normalized_xyxy);
         };
     public:
+
         DTO_INIT(ObjectDetectionDto, DTO)
 
-        DTO_FIELD(List<BoundingDto>, bboxes);
+        DTO_FIELD(List<Object<BoundingDto>>, bboxes);
     };
 }
 

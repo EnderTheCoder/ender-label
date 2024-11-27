@@ -14,6 +14,9 @@
 #include <memory>
 #include "oatpp/core/Types.hpp"
 #include "TypeUtil.hpp"
+
+#define ERROR(STATUS, MSG) throw web::protocol::http::HttpError(STATUS, MSG);
+
 namespace ender_label::util{
     class Util {
     public:

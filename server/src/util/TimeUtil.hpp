@@ -15,10 +15,6 @@
 namespace ender_label::util{
 class TimeUtil {
 public:
-    /**
-     * 用于获取当前时间
-     * @return 返回一个UNIX时间戳，单位为秒
-     * */
     static long getCurrentTimestampInLong() {
         boost::posix_time::ptime epoch(boost::gregorian::date(1970, boost::gregorian::Jan, 1));
         boost::posix_time::time_duration timestamp = boost::posix_time::second_clock::universal_time() - epoch;

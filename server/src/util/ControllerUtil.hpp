@@ -11,24 +11,25 @@ if(PARAM == nullptr) { throw oatpp::web::protocol::http::HttpError(oatpp::web::p
 
 #define REQUEST_ALL_PARAM_CHECK(REQUEST_DTO) \
 if(!ender_label::util::ControllerUtil::isAllParamNoNull(REQUEST_DTO)) { throw oatpp::web::protocol::http::HttpError(oatpp::web::protocol::http::Status::CODE_400, "不完整的参数"); }
+
+
 namespace ender_label::util {
+    class ControllerUtil {
+    private:
+        typedef oatpp::web::protocol::http::Status Status;
 
-class ControllerUtil {
-private:
-    typedef oatpp::web::protocol::http::Status Status;
-public:
-    template<DerivedFromDTO T>
-    static auto isAllParamNoNull(const oatpp::Object<T> &dto) {
-        for (auto &pair: oatpp::Object<T>::getPropertiesMap()) {
-            if (pair.second->get(dto.get()) == nullptr) {
-                return false;
+    public:
+        template<DerivedFromDTO T>
+        static auto isAllParamNoNull(const oatpp::Object<T> &dto) {
+            for (auto &pair: oatpp::Object<T>::getPropertiesMap()) {
+                if (pair.second->get(dto.get()) == nullptr) {
+                    return false;
+                }
             }
+            return true;
         }
-        return true;
-    }
-};
+    };
 }
-
 
 
 #endif //ENDER_LABEL_CONTROLLERUTIL_HPP
