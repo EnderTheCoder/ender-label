@@ -17,14 +17,14 @@ namespace ender_label::service::user {
             return getById(getDto()->parent);
         }
 
-        auto children() {
+        auto children(bool direct = true) {
             return toWrappedList(getByField("parent", getId()));
         }
 
-        auto get_is_child_of(auto perm_id) {
+        bool get_is_child_of(auto perm_id) {
         }
 
-        auto get_is_parent_of(auto perm_id) {
+        bool get_is_parent_of(auto perm_id) {
         }
     };
 }

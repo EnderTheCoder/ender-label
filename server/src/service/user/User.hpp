@@ -28,6 +28,11 @@ namespace ender_label::service::user {
         }
 
         void rmPerm(const int perm_id &perm_id) {
+            for (const auto perm = std::static_pointer_cast<Permission>(Permission::getById(perm_id));
+                 const auto &child: perm->children(false)) {
+                this->getDto()->permission_ids->erase(child->getId());
+            }
+            this->write();
         }
 
         void addPerm(const std::string &perm_key) {
