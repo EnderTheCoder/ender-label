@@ -17,7 +17,6 @@ namespace ender_label::dto::data {
         DTO_FIELD(String, name);
         DTO_FIELD(String, desc);
         DTO_FIELD(UnorderedSet<String>, img_files);
-        DTO_FIELD(UnorderedSet<Int32>, annotation_ids);
         DTO_FIELD(List<Int32>, class_ids);
     };
 }

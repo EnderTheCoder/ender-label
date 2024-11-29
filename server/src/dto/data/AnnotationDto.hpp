@@ -25,9 +25,11 @@ namespace ender_label::dto::data {
 
         DTO_FIELD(String, raw_json);
 
-        DTO_FIELD(Int32, width);
+        DTO_FIELD(Int64, width);
 
-        DTO_FIELD(Int32, height);
+        DTO_FIELD(Int64, height);
+
+        DTO_FIELD(List<Int32>, anno_cls_ids);
     };
 }
 

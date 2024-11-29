@@ -31,15 +31,15 @@ namespace ender_label::dto::data::annotation::foreign {
 
         DTO_FIELD(UnorderedFields<Void>, flags);
 
-        DTO_FIELD(List<ShapeDto>, shapes);
+        DTO_FIELD(List<Object<ShapeDto>>, shapes);
 
         DTO_FIELD(String, imagePath);
 
         DTO_FIELD(String, imageData);
 
-        DTO_FIELD(String, imageHeight);
+        DTO_FIELD(Int64, imageHeight);
 
-        DTO_FIELD(String, imageWidth);
+        DTO_FIELD(Int64, imageWidth);
     };
 }
 
