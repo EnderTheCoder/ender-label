@@ -30,7 +30,7 @@ namespace ender_label::service::dataset::annotation {
         }
 
     public:
-        std::string to_yolo() override {
+        std::string toYolo() override {
             std::stringstream ss;
             for (const auto anno = this->get_annotation(); const auto &polygon: *anno->polygons) {
                 ss << polygon->cls_id << " ";
@@ -42,7 +42,7 @@ namespace ender_label::service::dataset::annotation {
             return ss.str();
         }
 
-        void from_yolo(const std::string &source) override {
+        void fromYolo(const std::string &source) override {
             const OATPP_COMPONENT(std::shared_ptr<oatpp::data::mapping::ObjectMapper>, mapper);
             const auto dto = SegmentationDto::createShared();
             dto->polygons = {};
@@ -70,7 +70,7 @@ namespace ender_label::service::dataset::annotation {
             this->getDto()->raw_json = mapper->writeToString(dto);
         }
 
-        void from_labelme(const std::string &source) override {
+        void fromLabelme(const std::string &source) override {
             const OATPP_COMPONENT(std::shared_ptr<oatpp::data::mapping::ObjectMapper>, mapper);
             const auto dto = SegmentationDto::createShared();
             const auto foreign_dto = mapper->readFromString<Object<
@@ -99,7 +99,7 @@ namespace ender_label::service::dataset::annotation {
             this->getDto()->height = foreign_dto->imageHeight;
         }
 
-        std::string to_labelme() override {
+        std::string toLabelme() override {
             const OATPP_COMPONENT(std::shared_ptr<oatpp::data::mapping::ObjectMapper>, mapper);
             const auto dto = foreign::LabelmeSegmentationDto::createShared();
             //todo: vanilla -> labelme conv
@@ -107,19 +107,19 @@ namespace ender_label::service::dataset::annotation {
             return mapper->writeToString(dto);
         }
 
-        void from_coco(const std::string &source) override {
+        void fromCoco(const std::string &source) override {
             throw NotImplException("coco", "vanilla");
         }
 
-        void from_voc(const std::string &source) override {
+        void fromVoc(const std::string &source) override {
             throw NotImplException("voc", "vanilla");
         }
 
-        std::string to_coco() override {
+        std::string toCoco() override {
             throw NotImplException("vanilla", "coco");
         }
 
-        std::string to_voc() override {
+        std::string toVoc() override {
             throw NotImplException("vanilla", "voc");
         }
     };

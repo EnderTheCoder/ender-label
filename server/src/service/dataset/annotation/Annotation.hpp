@@ -19,21 +19,21 @@ namespace ender_label::service::dataset::annotation {
 
     class Annotation : public ServiceBean<table_name, data::AnnotationDto> {
     public:
-        virtual std::string to_yolo() = 0;
+        virtual std::string toYolo() = 0;
 
-        virtual std::string to_coco() = 0;
+        virtual std::string toCoco() = 0;
 
-        virtual std::string to_voc() = 0;
+        virtual std::string toVoc() = 0;
 
-        virtual std::string to_labelme() = 0;
+        virtual std::string toLabelme() = 0;
 
-        virtual void from_yolo(const std::string &source) = 0;
+        virtual void fromYolo(const std::string &source) = 0;
 
-        virtual void from_coco(const std::string &source) = 0;
+        virtual void fromCoco(const std::string &source) = 0;
 
-        virtual void from_labelme(const std::string &source) = 0;
+        virtual void fromLabelme(const std::string &source) = 0;
 
-        virtual void from_voc(const std::string &source) = 0;
+        virtual void fromVoc(const std::string &source) = 0;
     };
 
     class TransException : public std::runtime_error {

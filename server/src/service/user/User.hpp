@@ -42,11 +42,11 @@ namespace ender_label::service::user {
         }
 
 
-        bool get_is_session_valid(const std::string &session) {
+        bool getIsSessionValid(const std::string &session) {
             return this->getDto()->session != nullptr and this->getDto()->session == session;
         }
 
-        std::string refresh_session() {
+        std::string refreshSession() {
             const auto origin = std::to_string(util::TimeUtil::getCurrentTimestampInLong()) + this->getDto()->username +
                                 "EnderTheCoder";
             auto result = std::string();

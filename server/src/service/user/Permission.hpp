@@ -21,10 +21,10 @@ namespace ender_label::service::user {
             return toWrappedList(getByField("parent", getId()));
         }
 
-        bool get_is_child_of(auto perm_id) {
+        bool getIsChildOf(auto perm_id) {
         }
 
-        bool get_is_parent_of(auto perm_id) {
+        bool getIsParentOf(auto perm_id) {
         }
     };
 }
