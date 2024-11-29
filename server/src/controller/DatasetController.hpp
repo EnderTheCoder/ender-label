@@ -35,10 +35,7 @@ namespace ender_label::controller {
             REQUEST_PARAM_CHECK(dto->class_ids)
             REQUEST_PARAM_CHECK(dto->desc)
             REQUEST_PARAM_CHECK(dto->name)
-
-            if (!USER->hasPerm("DATASET_ADD")) {
-                ERROR(Status::CODE_403, "Permission denied.")
-            }
+            OATPP_ASSERT_HTTP(USER->hasPerm("DATASET_ADD"), Status::CODE_403, "Permission denied.")
             const auto resp = SimpleDataResponseDto<Object<data::DatasetDto> >::createShared();
             dto->owner_id = USER->getId();
             const auto dataset = dataset::BaseDataset::createShared(dto);
@@ -55,8 +52,8 @@ namespace ender_label::controller {
         ENDPOINT("GET", "/dataset/rm/{id}", rmDataset, AUTH_HEADER, PATH(Int32, id)) {
             AUTH
             const auto dataset = dataset::BaseDataset::getById(id);
-            OATPP_ASSERT(dataset != nullptr, Status::CODE_404, "Dataset not found.")
-            OATPP_ASSERT((USER->hasPerm("DATASET_RM") and dataset->getDto()->owner_id == USER->getId()) or
+            OATPP_ASSERT_HTTP(dataset != nullptr, Status::CODE_404, "Dataset not found.")
+            OATPP_ASSERT_HTTP((USER->hasPerm("DATASET_RM") and dataset->getDto()->owner_id == USER->getId()) or
                          USER->hasPerm("ROOT") or
                          USER->hasPerm("DATASET_RM_[" + std::to_string(id) + "]"),
                          Status::CODE_403, "Permission denied.")

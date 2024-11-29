@@ -117,14 +117,15 @@ namespace ender_label::service {
             return nullptr;
         }
 
-        static std::shared_ptr<ServiceBean> getById(const ID_TYPE &id) {
+        template<typename T=ServiceBean>
+        static std::shared_ptr<T> getById(const ID_TYPE &id) {
             using namespace web::protocol::http;
             OATPP_COMPONENT(std::shared_ptr<PgDb>, db);
             boost::format fmt("SELECT %2% FROM %1% WHERE id = :id");
             fmt % TABLE_NAME;
             fmt % getFieldStr();
             auto res = db->executeQuery(fmt.str(), {{"id", id}});
-            return get(res);
+            return std::static_pointer_cast<T>(get(res));
         }
 
         static Vector<Object<DTO_TYPE> > toDtoList(auto list) {
@@ -139,6 +140,16 @@ namespace ender_label::service {
                 return std::get<std::vector<std::shared_ptr<ServiceBean> > >(list);
             }
             return {};
+        }
+
+        template<typename T>
+        static std::vector<std::shared_ptr<T> > castWList(auto list) {
+            std::vector<std::shared_ptr<T> > res = {};
+            res.reserve(list.size());
+            for (const auto item: list) {
+                res.emplace_back(std::static_pointer_cast<T>(item));
+            }
+            return res;
         }
 
         static std::variant<std::vector<std::shared_ptr<ServiceBean> >, Vector<Object<DTO_TYPE> > >

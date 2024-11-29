@@ -17,14 +17,37 @@ namespace ender_label::service::user {
             return getById(getDto()->parent);
         }
 
-        auto children(bool direct = true) {
-            return toWrappedList(getByField("parent", getId()));
+        auto children(const bool direct = true) {
+            if (direct) {
+                return castWList<Permission>(toWrappedList(getByField("parent", getId())));
+            }
+            std::vector<std::shared_ptr<Permission> > res = {};
+            auto children = this->children();
+            res.insert(res.begin(), children.begin(), children.end());
+            for (const auto &perm: children) {
+                if (const auto grand_children = perm->children(); !grand_children.empty())
+                    res.insert(res.begin(), grand_children.begin(), grand_children.end()); {
+                }
+            }
+            return res;
         }
 
         bool getIsChildOf(auto perm_id) {
+            for (const auto perm = Permission::getById<Permission>(perm_id); const auto &_p: perm->children(false)) {
+                if (_p->getId() == getId()) {
+                    return true;
+                }
+            }
+            return false;
         }
 
         bool getIsParentOf(auto perm_id) {
+            for (const auto perm = Permission::getById<Permission>(perm_id); const auto &_p: this->children(false)) {
+                if (_p->getId() == perm->getId()) {
+                    return true;
+                }
+            }
+            return false;
         }
     };
 }
