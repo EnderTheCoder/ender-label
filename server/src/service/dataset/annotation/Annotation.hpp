@@ -5,7 +5,7 @@
 #ifndef ANNOTATION_HPP
 #define ANNOTATION_HPP
 
-#include <sstream>
+#include <utility>
 
 #include "service/ServiceBean.hpp"
 #include "dto/data/AnnotationDto.hpp"
@@ -45,19 +45,21 @@ namespace ender_label::service::dataset::annotation {
               from(from),
               to(to) {
         }
+
+        explicit TransException(std::string from, std::string to, const std::string &cause)
+            : std::runtime_error(cause),
+              from(std::move(from)),
+              to(std::move(to)) {
+        }
     };
 
     class LabelNotFoundException final : public TransException {
     public:
         std::string label;
 
-        explicit LabelNotFoundException(const std::string &from, const std::string &to, const std::string &label)
-            : TransException(from, to), label(label) {
+        explicit LabelNotFoundException(const std::string &from, const std::string &to, std::string label)
+            : TransException(from, to, "Label not found: " + label), label(std::move(label)) {
         }
-
-        [[nodiscard]] const char *what() const noexcept override {
-            return ("Label not found: " + this->label).c_str();
-        };
     };
 }
 
