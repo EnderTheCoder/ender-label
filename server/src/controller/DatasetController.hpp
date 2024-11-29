@@ -30,7 +30,7 @@ namespace ender_label::controller {
         }
 
     public:
-        ENDPOINT("GET", "/dataset/add", addDataset, BODY_DTO(Object<data::DatasetDto>, dto), AUTH_HEADER) {
+        ENDPOINT("POST", "/dataset/add", addDataset, BODY_DTO(Object<data::DatasetDto>, dto), AUTH_HEADER) {
             AUTH
             REQUEST_PARAM_CHECK(dto->class_ids)
             REQUEST_PARAM_CHECK(dto->desc)
