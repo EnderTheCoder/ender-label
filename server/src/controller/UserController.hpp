@@ -16,7 +16,7 @@
 namespace ender_label::controller {
     using namespace service;
 
-    class UserController : public oatpp::web::server::api::ApiController {
+    class UserController final : public oatpp::web::server::api::ApiController {
     private:
         explicit UserController(OATPP_COMPONENT(std::shared_ptr<ObjectMapper>, objectMapper))
             : oatpp::web::server::api::ApiController(objectMapper) {
@@ -48,7 +48,7 @@ namespace ender_label::controller {
 
         }
 
-        ENDPOINT("GET", "/user/permission/ch", chPermission, AUTH_HEADER, BODY_DTO(Object<UnorderedSet<Int32>>, perms)) {
+        ENDPOINT("GET", "/user/permission/ch", chPermission, AUTH_HEADER, BODY_DTO(UnorderedSet<Int32>, perms)) {
             AUTH
             if (!USER->hasPerm("ROOT")) {
                 ERROR(Status::CODE_403, "Permission denied.")
@@ -58,11 +58,18 @@ namespace ender_label::controller {
             return createDtoResponse(Status::CODE_200, BaseResponseDto::createShared());
         }
 
-        ENDPOINT("GET", "/user/add", addUser, AUTH_HEADER) {
+        ENDPOINT("GET", "/user/add", addUser, AUTH_HEADER, BODY_DTO(Object<data::UserDto>, user_dto)) {
             AUTH
+            REQUEST_PARAM_CHECK(user_dto->email)
+            REQUEST_PARAM_CHECK(user_dto->password)
+            REQUEST_PARAM_CHECK(user_dto->permission_ids)
+            REQUEST_PARAM_CHECK(user_dto->username)
             if (!USER->hasPerm("ROOT")) {
                 ERROR(Status::CODE_403, "Permission denied.")
             }
+            const auto user = user::User::createShared(user_dto);
+            user->write();
+            return createDtoResponse(Status::CODE_200, BaseResponseDto::createShared());
         }
 
         ENDPOINT("GET", "/user/rm", rmUser, AUTH_HEADER) {
@@ -70,10 +77,15 @@ namespace ender_label::controller {
             if (!USER->hasPerm("ROOT")) {
                 ERROR(Status::CODE_403, "Permission denied.")
             }
+            USER->del();
+            return createDtoResponse(Status::CODE_200, BaseResponseDto::createShared());
         }
 
         ENDPOINT("GET", "/user/info", getUser, AUTH_HEADER) {
             AUTH
+            const auto resp = SimpleDataResponseDto<Object<data::UserDto>>::createShared();
+            resp->data = USER->getDto();
+            return createDtoResponse(Status::CODE_200, resp);
         }
     };
 }

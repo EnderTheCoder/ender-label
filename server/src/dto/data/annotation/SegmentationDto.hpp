@@ -12,14 +12,14 @@
 
 namespace ender_label::dto::data::annotation {
     class SegmentationDto : public oatpp::DTO {
-    private:
+    public:
         class PolygonDto : public oatpp::DTO {
             DTO_INIT(PolygonDto, DTO)
 
             DTO_FIELD(Int32, cls_id);
 
             // List[points...] -> List[x, y] -> Float32[0-1 float number]
-            DTO_FIELD(List<List<Float32>>, normalized_points);
+            DTO_FIELD(List<List<Float64>>, normalized_points);
         };
 
         class MaskDto : public oatpp::DTO {
@@ -31,7 +31,6 @@ namespace ender_label::dto::data::annotation {
             DTO_FIELD(List<List<Int32>>, pixels);
         };
 
-    public:
         DTO_INIT(SegmentationDto, DTO)
 
         DTO_FIELD(List<Object<PolygonDto>>, polygons);

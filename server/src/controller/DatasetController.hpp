@@ -5,7 +5,7 @@
 #ifndef DATASETCONTROLLER_HPP
 #define DATASETCONTROLLER_HPP
 #include "service/dataset/BaseDataset.hpp"
-#include "service/dataset/annotation/Annotation.hpp"
+#include "service/dataset/annotation/SegmentationAnnotation.hpp"
 #include OATPP_CODEGEN_BEGIN(ApiController)
 
 namespace ender_label::controller {
