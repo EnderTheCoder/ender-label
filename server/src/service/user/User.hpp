@@ -8,6 +8,7 @@
 #include "dto/data/UserDto.hpp"
 #include  "util/TimeUtil.hpp"
 #include  "util/Util.hpp"
+#include "Permission.hpp"
 
 namespace ender_label::service::user {
     constexpr char table_name_user[] = "user";
@@ -16,19 +17,33 @@ namespace ender_label::service::user {
     public:
         bool hasPerm(const std::string &perm_key) {
             const auto perms = Permission::toDtoList(Permission::getByField("key", String(perm_key)));
-            return this->getDto()->permission_ids->contains(perms->front()->id);
+            return this->hasPerm(perms->front()->id);
         }
 
         bool hasPerm(const int perm_id) {
             return this->getDto()->permission_ids->contains(perm_id);
         }
 
+        void rmPerm(const std::string &perm_key) {
+        }
+
+        void rmPerm(const int perm_id &perm_id) {
+        }
+
+        void addPerm(const std::string &perm_key) {
+        }
+
+        void addPerm(const int perm_id &perm_id) {
+        }
+
+
         bool get_is_session_valid(const std::string &session) {
             return this->getDto()->session != nullptr and this->getDto()->session == session;
         }
 
         std::string refresh_session() {
-            const auto origin = std::to_string(util::TimeUtil::getCurrentTimestampInLong()) + this->getDto()->username + "EnderTheCoder";
+            const auto origin = std::to_string(util::TimeUtil::getCurrentTimestampInLong()) + this->getDto()->username +
+                                "EnderTheCoder";
             auto result = std::string();
             util::Util::computeHash(origin, result);
             const auto dto = data::UserDto::createShared();
@@ -36,8 +51,6 @@ namespace ender_label::service::user {
             this->overwrite(dto);
             return result;
         }
-
-
     };
 }
 
