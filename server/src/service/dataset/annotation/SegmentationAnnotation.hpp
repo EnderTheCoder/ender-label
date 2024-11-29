@@ -10,7 +10,7 @@
 namespace ender_label::service::dataset::annotation {
     using namespace data::annotation;
 
-    class SegmentationAnnotation : public Annotation {
+    class SegmentationAnnotation final : public Annotation {
         auto get_annotation() {
             const OATPP_COMPONENT(std::shared_ptr<oatpp::data::mapping::ObjectMapper>, mapper);
             return mapper->readFromString<Object<SegmentationDto> >(this->getDto()->raw_json);
@@ -37,7 +37,7 @@ namespace ender_label::service::dataset::annotation {
                 for (const auto &point: *polygon->normalized_points) {
                     ss << point->front() << " " << point->back();
                 }
-                ss << " \n";
+                ss << "\n";
             }
             return ss.str();
         }
@@ -97,6 +97,30 @@ namespace ender_label::service::dataset::annotation {
             }
             this->getDto()->width = foreign_dto->imageWidth;
             this->getDto()->height = foreign_dto->imageHeight;
+        }
+
+        std::string to_labelme() override {
+            const OATPP_COMPONENT(std::shared_ptr<oatpp::data::mapping::ObjectMapper>, mapper);
+            const auto dto = foreign::LabelmeSegmentationDto::createShared();
+            //todo: vanilla -> labelme conv
+            throw NotImplException("vanilla", "labelme");
+            return mapper->writeToString(dto);
+        }
+
+        void from_coco(const std::string &source) override {
+            throw NotImplException("coco", "vanilla");
+        }
+
+        void from_voc(const std::string &source) override {
+            throw NotImplException("voc", "vanilla");
+        }
+
+        std::string to_coco() override {
+            throw NotImplException("vanilla", "coco");
+        }
+
+        std::string to_voc() override {
+            throw NotImplException("vanilla", "voc");
         }
     };
 }

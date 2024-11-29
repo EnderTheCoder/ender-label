@@ -61,6 +61,14 @@ namespace ender_label::service::dataset::annotation {
             : TransException(from, to, "Label not found: " + label), label(std::move(label)) {
         }
     };
+
+    class NotImplException final : public TransException {
+    public:
+
+        explicit NotImplException(const std::string &from, const std::string &to)
+            : TransException(from, to, "Trans from " + from + " to " + to + " is not implemented.") {
+        }
+    };
 }
 
 
