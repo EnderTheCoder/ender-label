@@ -54,7 +54,6 @@ namespace ender_label::controller {
             const auto dataset = dataset::BaseDataset::getById(id);
             OATPP_ASSERT_HTTP(dataset != nullptr, Status::CODE_404, "Dataset not found.")
             OATPP_ASSERT_HTTP((USER->hasPerm("DATASET_RM") and dataset->getDto()->owner_id == USER->getId()) or
-                         USER->hasPerm("ROOT") or
                          USER->hasPerm("DATASET_RM_[" + std::to_string(id) + "]"),
                          Status::CODE_403, "Permission denied.")
             return createDtoResponse(Status::CODE_200, BaseResponseDto::createShared());

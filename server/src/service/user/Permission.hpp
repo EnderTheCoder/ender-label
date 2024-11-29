@@ -14,7 +14,15 @@ namespace ender_label::service::user {
     class Permission final : public ServiceBean<table_name_permission, data::PermissionDto> {
     public:
         auto parent() {
-            return getById(getDto()->parent);
+            return getById<Permission>(getDto()->parent);
+        }
+
+        auto uppers() {
+            std::vector<std::shared_ptr<Permission> > res = {};
+            for (std::shared_ptr<Permission> perm = parent(); perm != nullptr; perm = perm->parent()) {
+                res.push_back(perm);
+            }
+            return res;
         }
 
         auto children(const bool direct = true) {
@@ -50,6 +58,10 @@ namespace ender_label::service::user {
                 }
             }
             return false;
+        }
+
+        bool getIsRoot() {
+            return this->getDto()->key == "ROOT";
         }
     };
 }

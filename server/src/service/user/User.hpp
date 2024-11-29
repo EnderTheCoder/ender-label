@@ -13,7 +13,7 @@
 namespace ender_label::service::user {
     constexpr char table_name_user[] = "user";
 
-    class User : public ServiceBean<table_name_user, data::UserDto> {
+    class User final : public ServiceBean<table_name_user, data::UserDto> {
     public:
         bool hasPerm(const std::string &perm_key) {
             const auto perms = Permission::toDtoList(Permission::getByField("key", String(perm_key)));
@@ -21,10 +21,18 @@ namespace ender_label::service::user {
         }
 
         bool hasPerm(const int perm_id) {
-            return this->getDto()->permission_ids->contains(perm_id);
+            if (this->getDto()->permission_ids->contains(perm_id)) return true;
+            if (const auto perm = Permission::getById<Permission>(perm_id); std::ranges::any_of(
+                perm->uppers(), [this](auto &_p) {
+                    return this->getDto()->permission_ids->contains(_p->getDto()->id);
+                }))
+                return true;
+            return false;
         }
 
         void rmPerm(const std::string &perm_key) {
+            const auto perms = Permission::toDtoList(Permission::getByField("key", String(perm_key)));
+            this->rmPerm(perms->front()->id);
         }
 
         void rmPerm(const int &perm_id) {
@@ -32,15 +40,19 @@ namespace ender_label::service::user {
                  const auto &child: perm->children(false)) {
                 this->getDto()->permission_ids->erase(child->getId());
             }
+            this->getDto()->permission_ids->erase(perm_id);
             this->write();
         }
 
         void addPerm(const std::string &perm_key) {
+            const auto perms = Permission::toDtoList(Permission::getByField("key", String(perm_key)));
+            this->addPerm(perms->front()->id);
         }
 
         void addPerm(const int &perm_id) {
+            this->getDto()->permission_ids->emplace(perm_id);
+            this->write();
         }
-
 
         bool getIsSessionValid(const std::string &session) {
             return this->getDto()->session != nullptr and this->getDto()->session == session;
