@@ -23,10 +23,12 @@ namespace ender_label::service::user {
             }
             std::vector<std::shared_ptr<Permission> > res = {};
             auto children = this->children();
-            res.insert(res.begin(), children.begin(), children.end());
-            for (const auto &perm: children) {
-                if (const auto grand_children = perm->children(); !grand_children.empty())
-                    res.insert(res.begin(), grand_children.begin(), grand_children.end()); {
+            if (!children.empty()) {
+                res.insert(res.begin(), children.begin(), children.end());
+                for (const auto &perm: children) {
+                    if (const auto grand_children = perm->children(); !grand_children.empty())
+                        res.insert(res.begin(), grand_children.begin(), grand_children.end()); {
+                    }
                 }
             }
             return res;
