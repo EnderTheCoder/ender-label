@@ -4,8 +4,8 @@ project(${project_name} VERSION 0.1.0)
 file(GLOB LIBS_PATH_MAIN ./src/*.hpp)
 
 set(CMAKE_CXX_STANDARD 23)
-add_library(${project_name}-lib ${LIBS_PATH_MAIN})
-
+add_library(${project_name}-lib)
+target_sources(${project_name}-lib PUBLIC ${LIBS_PATH_MAIN})
 target_include_directories(${project_name}-lib PUBLIC src)
 ## link libs
 find_package(oatpp 1.3.0 REQUIRED)

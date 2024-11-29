@@ -5,7 +5,7 @@
 #ifndef SEGMENTATION_ANNOTATION_HPP
 #define SEGMENTATION_ANNOTATION_HPP
 #include "Annotation.hpp"
-
+#include "dto/data/annotation/foreign/LabelmeSegmentationDto.hpp"
 namespace ender_label::service::dataset::annotation {
     class SegmentationAnnotation : public Annotation {
         auto get_annotation() {
@@ -49,6 +49,10 @@ namespace ender_label::service::dataset::annotation {
                 dto->polygons->emplace_back(polygon_dto);
             }
             this->getDto()->raw_json = mapper->writeToString(dto);
+        }
+
+        void from_labelme(const std::string &source) override {
+
         }
     };
 }
