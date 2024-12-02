@@ -13,6 +13,7 @@ find_package(oatpp-postgresql 1.3.0 REQUIRED)
 find_package(oatpp-swagger 1.3.0 REQUIRED)
 find_package(oatpp-curl 1.3.0 REQUIRED)
 find_package(oatpp-websocket 1.3.0 REQUIRED)
+find_package(OpenCV REQUIRED)
 
 find_package(Boost 1.70.0 COMPONENTS ALL)
 find_package(OpenSSL REQUIRED)
@@ -26,7 +27,8 @@ target_link_libraries(${project_name}-lib
         PUBLIC oatpp::oatpp-websocket
         PUBLIC OpenSSL::SSL
         PUBLIC ${Boost_LIBRARIES}
-        )
+        PUBLIC ${OpenCV_LIBS}
+)
 
 # 读取版本号文件的内容
 file(READ version.txt VERSION)
