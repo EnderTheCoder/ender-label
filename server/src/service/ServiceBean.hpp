@@ -44,8 +44,9 @@ namespace ender_label::service {
             this->dto = dto;
         }
 
-        static auto createShared(const Object<DTO_TYPE> &dto) {
-            return std::make_shared<ServiceBean>(dto);
+        template<typename T=ServiceBean>
+        static std::shared_ptr<T> createShared(const Object<DTO_TYPE> &dto) {
+            return std::static_pointer_cast<T>(std::make_shared<ServiceBean>(dto));
         }
 
         static auto getFieldStr() {

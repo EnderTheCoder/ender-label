@@ -4,6 +4,8 @@
 
 #ifndef DATASETCONTROLLER_HPP
 #define DATASETCONTROLLER_HPP
+#include "dto/request/ImportDatasetRequestDto.hpp"
+
 #include <dto/response/SimpleDataResponseDto.hpp>
 
 #include "service/dataset/BaseDataset.hpp"
@@ -43,10 +45,27 @@ namespace ender_label::controller {
             return createDtoResponse(Status::CODE_200, resp);
         }
 
-        ENDPOINT("GET", "/dataset/import", importDataset) {
+        ENDPOINT("GET", "/dataset/{dataset_id}/import", importDataset, AUTH_HEADER,
+                 PATH(Int32, dataset_id),
+                 BODY_DTO(Object<request::ImportDatasetRequestDto>, dto)) {
+            AUTH
+            const auto resp = SimpleDataResponseDto<String>::createShared();
+            const auto dataset = dataset::BaseDataset::getById<dataset::BaseDataset>(dataset_id);
+            OATPP_ASSERT_HTTP(dataset != nullptr, Status::CODE_404, "Dataset does not exist.")
+            OATPP_ASSERT_HTTP(USER->hasPerm("DATASET_UPDATE_["+std::to_string(dataset_id)+"]"), Status::CODE_200,
+                              "Permission denied.")
+            dataset->importYolo(dto->import_dir, {}, {}, "segmentation");
+            return createDtoResponse(Status::CODE_200, resp);
         }
 
-        ENDPOINT("GET", "/dataset/export", exportDataset) {
+        ENDPOINT("GET", "/dataset/{dataset_id}/export", exportDataset, AUTH_HEADER, PATH(Int32, dataset_id)) {
+            AUTH
+            const auto resp = SimpleDataResponseDto<String>::createShared();
+            const auto dataset = dataset::BaseDataset::getById<dataset::BaseDataset>(dataset_id);
+            OATPP_ASSERT_HTTP(dataset != nullptr, Status::CODE_404, "Dataset does not exist.")
+            OATPP_ASSERT_HTTP(USER->hasPerm("DATASET_READ_["+std::to_string(dataset_id)+"]"), Status::CODE_200,
+                              "Permission denied.")
+
         }
 
         ENDPOINT("GET", "/dataset/rm/{id}", rmDataset, AUTH_HEADER, PATH(Int32, id)) {
@@ -54,8 +73,8 @@ namespace ender_label::controller {
             const auto dataset = dataset::BaseDataset::getById(id);
             OATPP_ASSERT_HTTP(dataset != nullptr, Status::CODE_404, "Dataset not found.")
             OATPP_ASSERT_HTTP((USER->hasPerm("DATASET_RM") and dataset->getDto()->owner_id == USER->getId()) or
-                         USER->hasPerm("DATASET_RM_[" + std::to_string(id) + "]"),
-                         Status::CODE_403, "Permission denied.")
+                              USER->hasPerm("DATASET_RM_[" + std::to_string(id) + "]"),
+                              Status::CODE_403, "Permission denied.")
             return createDtoResponse(Status::CODE_200, BaseResponseDto::createShared());
         }
 
