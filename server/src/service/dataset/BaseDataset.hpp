@@ -33,7 +33,7 @@ namespace ender_label::service::dataset {
             const path root(s_path);
             auto img_paths = std::set<path>{};
             auto anno_paths = std::set<path>{};
-            std::function<void(path)> func_list_dir = [&](const auto& _path) {
+            std::function<void(path)> func_list_dir = [&](const auto &_path) {
                 for (directory_iterator it(_path); it != directory_iterator(); ++it) {
                     if (is_regular_file(it->path())) {
                         if (supported_img_ext.contains(extension(it->path()))) {
@@ -90,6 +90,18 @@ namespace ender_label::service::dataset {
         }
 
         virtual void importVoc(const std::string &s_path) {
+        }
+
+        virtual void exportYolo() {
+        }
+
+        virtual void exportCoco() {
+        }
+
+        virtual void exportLabelme() {
+        }
+
+        virtual void exportVoc() {
         }
     };
 }
