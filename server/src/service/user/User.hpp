@@ -36,12 +36,14 @@ namespace ender_label::service::user {
         }
 
         void rmPerm(const int &perm_id) {
+            const auto dto = data::UserDto::createShared();
+            dto->permission_ids = this->getDto()->permission_ids;
             for (const auto perm = std::static_pointer_cast<Permission>(Permission::getById(perm_id));
                  const auto &child: perm->children(false)) {
-                this->getDto()->permission_ids->erase(child->getId());
+                dto->permission_ids->erase(child->getId());
             }
-            this->getDto()->permission_ids->erase(perm_id);
-            this->write();
+            dto->permission_ids->erase(perm_id);
+            this->overwrite(dto);
         }
 
         void addPerm(const std::string &perm_key) {
@@ -50,8 +52,10 @@ namespace ender_label::service::user {
         }
 
         void addPerm(const int &perm_id) {
-            this->getDto()->permission_ids->emplace(perm_id);
-            this->write();
+            const auto dto = data::UserDto::createShared();
+            dto->permission_ids = this->getDto()->permission_ids;
+            dto->permission_ids->emplace(perm_id);
+            this->overwrite(dto);
         }
 
         bool getIsSessionValid(const std::string &session) {
