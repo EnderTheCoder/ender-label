@@ -5,6 +5,7 @@
 #ifndef ENDER_LABEL_APPCOMPONENT_HPP
 #define ENDER_LABEL_APPCOMPONENT_HPP
 
+#include <boost/filesystem.hpp>
 #include <boost/algorithm/string.hpp>
 #include "oatpp/web/server/HttpConnectionHandler.hpp"
 #include "oatpp/network/tcp/server/ConnectionProvider.hpp"
@@ -36,12 +37,13 @@ namespace ender_label::component {
             const char *config_path = std::getenv("CONFIG_PATH"); // first read from env variable
             if (config_path == nullptr) {
                 config_path = m_cmdArgs.getNamedArgumentValue("--config",
-                                                             "../resources/config.json");
+                                                              "../resources/config.json");
                 // if no env variable get from command line
             }
 
             if (const oatpp::String configText = oatpp::String::loadFromFile(config_path)) {
-                const auto profiles = objectMapper->readFromString<oatpp::Fields<oatpp::Object<data::ConfigDto> > >(configText);
+                const auto profiles = objectMapper->readFromString<oatpp::Fields<oatpp::Object<data::ConfigDto> > >(
+                    configText);
 
                 const char *profileArg = std::getenv("CONFIG_PROFILE"); // first read from env variable
                 if (profileArg == nullptr) {
@@ -60,10 +62,19 @@ namespace ender_label::component {
 
                 boost::split(str, profileArg, boost::is_any_of("@"));
                 if (str.size() != 2 || (str.at(0) != "development" && str.at(0) != "production")) {
-                    throw std::runtime_error("Wrong config param, please check.");
+                    throw std::runtime_error("Wrong config profile indicator format.");
                 }
 
                 profile->config_type = str.at(0);
+
+                const auto storage_root = boost::filesystem::path(profile->storage);
+                if (not(exists(storage_root) and is_directory(storage_root))) {
+                    throw std::runtime_error("Invalid storage path: not a directory or not exist.");
+                }
+                auto sub_dirs = std::array{"datasets"};
+                std::ranges::for_each(sub_dirs, [&storage_root](auto &x) {
+                    if (not exists(storage_root / x)) boost::filesystem::create_directory(storage_root / x);
+                });
                 return profile;
             }
 
