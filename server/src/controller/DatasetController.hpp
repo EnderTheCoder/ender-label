@@ -40,7 +40,7 @@ namespace ender_label::controller {
             OATPP_ASSERT_HTTP(USER->hasPerm("DATASET_ADD"), Status::CODE_403, "Permission denied.")
             const auto resp = SimpleDataResponseDto<Object<data::DatasetDto> >::createShared();
             dto->owner_id = USER->getId();
-            const auto dataset = dataset::BaseDataset::createShared(dto);
+            const auto dataset = dataset::ImageDataset::createShared(dto);
             dataset->write();
             return createDtoResponse(Status::CODE_200, resp);
         }
@@ -50,7 +50,7 @@ namespace ender_label::controller {
                  BODY_DTO(Object<request::ImportDatasetRequestDto>, dto)) {
             AUTH
             const auto resp = SimpleDataResponseDto<String>::createShared();
-            const auto dataset = dataset::BaseDataset::getById<dataset::BaseDataset>(dataset_id);
+            const auto dataset = dataset::ImageDataset::getById<dataset::ImageDataset>(dataset_id);
             OATPP_ASSERT_HTTP(dataset != nullptr, Status::CODE_404, "Dataset does not exist.")
             OATPP_ASSERT_HTTP(USER->hasPerm("DATASET_UPDATE_["+std::to_string(dataset_id)+"]"), Status::CODE_200,
                               "Permission denied.")
@@ -61,7 +61,7 @@ namespace ender_label::controller {
         ENDPOINT("GET", "/dataset/{dataset_id}/export", exportDataset, AUTH_HEADER, PATH(Int32, dataset_id)) {
             AUTH
             const auto resp = SimpleDataResponseDto<String>::createShared();
-            const auto dataset = dataset::BaseDataset::getById<dataset::BaseDataset>(dataset_id);
+            const auto dataset = dataset::ImageDataset::getById<dataset::ImageDataset>(dataset_id);
             OATPP_ASSERT_HTTP(dataset != nullptr, Status::CODE_404, "Dataset does not exist.")
             OATPP_ASSERT_HTTP(USER->hasPerm("DATASET_READ_["+std::to_string(dataset_id)+"]"), Status::CODE_200,
                               "Permission denied.")
@@ -70,7 +70,7 @@ namespace ender_label::controller {
 
         ENDPOINT("GET", "/dataset/rm/{id}", rmDataset, AUTH_HEADER, PATH(Int32, id)) {
             AUTH
-            const auto dataset = dataset::BaseDataset::getById(id);
+            const auto dataset = dataset::ImageDataset::getById(id);
             OATPP_ASSERT_HTTP(dataset != nullptr, Status::CODE_404, "Dataset not found.")
             OATPP_ASSERT_HTTP((USER->hasPerm("DATASET_RM") and dataset->getDto()->owner_id == USER->getId()) or
                               USER->hasPerm("DATASET_RM_[" + std::to_string(id) + "]"),

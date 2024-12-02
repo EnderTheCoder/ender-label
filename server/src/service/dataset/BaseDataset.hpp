@@ -17,7 +17,7 @@
 namespace ender_label::service::dataset {
     constexpr char table_name[] = "dataset";
 
-    class BaseDataset : public ServiceBean<table_name, data::DatasetDto> {
+    class ImageDataset : public ServiceBean<table_name, data::DatasetDto> {
     public:
         boost::filesystem::path root() {
             using namespace boost::filesystem;
