@@ -5,7 +5,7 @@
     "migrations": "../sql",
     "db": "postgresql://postgres:postgres@localhost:5432/dev",
     "resources": "../resources",
-    "storage": "./data",
+    "storage": "../data",
     "redis": "tcp://127.0.0.1:6379",
     "cache_time": 120,
     "callback": "https://test.ender.cool"

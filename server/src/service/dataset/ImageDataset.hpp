@@ -16,7 +16,7 @@
 #include <opencv2/opencv.hpp>
 
 namespace ender_label::service::dataset {
-    constexpr char table_name[] = "dataset";
+    constexpr char table_name[] = "ender_label_img_dataset";
 
     class ImageDataset : public ServiceBean<table_name, data::DatasetDto>, Dataset {
     public:

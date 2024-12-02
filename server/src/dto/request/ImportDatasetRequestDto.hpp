@@ -6,6 +6,7 @@
 #include <oatpp/codegen/dto/base_define.hpp>
 #include <oatpp/codegen/dto/base_define.hpp>
 #include <oatpp/codegen/dto/base_define.hpp>
+#include <oatpp/codegen/dto/base_define.hpp>
 
 #include "oatpp/core/macro/codegen.hpp"
 #include "oatpp/core/Types.hpp"
@@ -14,6 +15,8 @@
 namespace ender_label::dto::request {
     class ImportDatasetRequestDto final : public oatpp::DTO {
         DTO_INIT(ImportDatasetRequestDto, DTO)
+
+        DTO_FIELD(String, type);
 
         DTO_FIELD(String, import_dir);
 

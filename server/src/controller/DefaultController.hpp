@@ -10,6 +10,7 @@
 #include "ErrorHandler.hpp"
 #include "iostream"
 #include "service/ServiceBean.hpp"
+#include "dto/request/ExportDatasetRequestDto.hpp"
 #include OATPP_CODEGEN_BEGIN(ApiController)
 namespace ender_label::controller {
     using namespace service;

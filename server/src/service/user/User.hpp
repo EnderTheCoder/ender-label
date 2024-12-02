@@ -11,7 +11,7 @@
 #include "Permission.hpp"
 
 namespace ender_label::service::user {
-    constexpr char table_name_user[] = "user";
+    constexpr char table_name_user[] = "ender_label_user";
 
     class User final : public ServiceBean<table_name_user, data::UserDto> {
     public:

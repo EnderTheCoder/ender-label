@@ -20,7 +20,7 @@ namespace ender_label::dto::data {
 
         DTO_FIELD(String, key);
 
-        DTO_FIELD(Int32, parent);
+        DTO_FIELD(Int32, parent_id);
 
         DTO_FIELD(String, desc);
     };

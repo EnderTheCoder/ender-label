@@ -17,7 +17,7 @@ namespace ender_label::db {
             : DbClient(executor) {
             OATPP_COMPONENT(oatpp::Object<dto::data::ConfigDto>, config);
             oatpp::orm::SchemaMigration migration(executor, "ender_label");
-            migration.addFile(1, config->migrations + "/...sql");
+            migration.addFile(1, config->migrations + "/table_init.sql");
             migration.migrate();
 
             OATPP_LOGD("PgDb", "Migration - OK. Version=%ld.", migration.getSchemaVersion());

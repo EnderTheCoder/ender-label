@@ -15,7 +15,7 @@
 #include "AnnotationClass.hpp"
 
 namespace ender_label::service::dataset::annotation {
-    constexpr char table_name[] = "annotation";
+    constexpr char table_name[] = "ender_label_img_dataset_annotation";
 
     class Annotation : public ServiceBean<table_name, data::AnnotationDto> {
     public:

@@ -9,12 +9,12 @@
 #include "dto/data/PermissionDto.hpp"
 
 namespace ender_label::service::user {
-    constexpr char table_name_permission[] = "permission";
+    constexpr char table_name_permission[] = "ender_label_permission";
 
     class Permission final : public ServiceBean<table_name_permission, data::PermissionDto> {
     public:
         auto parent() {
-            return getById<Permission>(getDto()->parent);
+            return getById<Permission>(getDto()->parent_id);
         }
 
         auto uppers() {
