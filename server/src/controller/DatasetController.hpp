@@ -54,7 +54,17 @@ namespace ender_label::controller {
             OATPP_ASSERT_HTTP(dataset != nullptr, Status::CODE_404, "Dataset does not exist.")
             OATPP_ASSERT_HTTP(USER->hasPerm("DATASET_UPDATE_["+std::to_string(dataset_id)+"]"), Status::CODE_200,
                               "Permission denied.")
-            dataset->importYolo(dto->import_dir, {}, {}, "segmentation");
+            auto img_exts = std::unordered_set<std::string>{};
+            auto anno_exts = std::unordered_set<std::string>{};
+            std::for_each(dto->img_exts->begin(), dto->img_exts->end(), [&img_exts](auto &x) {
+                OATPP_ASSERT_HTTP(x->size() > 1 and x->front() == '.', Status::CODE_400, "Wrong ext format.")
+                img_exts.emplace(x);
+            });
+            std::for_each(dto->anno_exts->begin(), dto->anno_exts->end(), [&anno_exts](auto &x) {
+                OATPP_ASSERT_HTTP(x->size() > 1 and x->front() == '.', Status::CODE_400, "Wrong ext format.")
+                anno_exts.emplace(x);
+            });
+            dataset->importYolo(dto->import_dir, img_exts, anno_exts, "segmentation");
             return createDtoResponse(Status::CODE_200, resp);
         }
 
@@ -65,7 +75,6 @@ namespace ender_label::controller {
             OATPP_ASSERT_HTTP(dataset != nullptr, Status::CODE_404, "Dataset does not exist.")
             OATPP_ASSERT_HTTP(USER->hasPerm("DATASET_READ_["+std::to_string(dataset_id)+"]"), Status::CODE_200,
                               "Permission denied.")
-
         }
 
         ENDPOINT("GET", "/dataset/rm/{id}", rmDataset, AUTH_HEADER, PATH(Int32, id)) {

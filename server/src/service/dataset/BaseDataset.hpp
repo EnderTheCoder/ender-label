@@ -103,6 +103,12 @@ namespace ender_label::service::dataset {
 
         virtual void exportVoc() {
         }
+
+        virtual void exportVanilla() {
+        }
+
+        virtual void importVanilla() {
+        }
     };
 }
 
