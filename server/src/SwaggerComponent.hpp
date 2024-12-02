@@ -24,7 +24,7 @@ namespace ender_label::component {
                     .setContactName("EnderTheCoder")
                     .setContactUrl("https://github.com/EnderTheCoder")
                     .setLicenseName("All rights reserved")
-                    .addServer("https://test.ender.cool", "Test Server");
+                    .addServer("http://49.209.30.134:4778/", "Test Server");
 
             return builder.build();
 

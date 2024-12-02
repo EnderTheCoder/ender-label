@@ -5,6 +5,7 @@
 #ifndef ENDER_LABEL_PGDB_HPP
 #define ENDER_LABEL_PGDB_HPP
 
+#include <filesystem>
 #include "oatpp-postgresql/orm.hpp"
 #include "dto/data/ConfigDto.hpp"
 #include OATPP_CODEGEN_BEGIN(DbClient)
@@ -17,7 +18,8 @@ namespace ender_label::db {
             : DbClient(executor) {
             OATPP_COMPONENT(oatpp::Object<dto::data::ConfigDto>, config);
             oatpp::orm::SchemaMigration migration(executor, "ender_label");
-            migration.addFile(1, config->migrations + "/table_init.sql");
+            migration.addFile(
+                1, (std::filesystem::path(config->migrations) / std::filesystem::path("table_init.sql")).string());
             migration.migrate();
 
             OATPP_LOGD("PgDb", "Migration - OK. Version=%ld.", migration.getSchemaVersion());

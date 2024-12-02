@@ -33,7 +33,7 @@ namespace ender_label::controller {
         }
 
     public:
-        ENDPOINT("GET", "/user/login", login, BODY_DTO(Object<request::LoginRequestDto>, req)) {
+        ENDPOINT("POST", "/user/login", login, BODY_DTO(Object<request::LoginRequestDto>, req)) {
             REQUEST_ALL_PARAM_CHECK(req)
             const auto resp = SimpleDataResponseDto<Object<data::UserDto> >::createShared();
             const auto users = user::User::toWrappedList(user::User::getByField("username", req->username, true));
@@ -63,7 +63,7 @@ namespace ender_label::controller {
                 Status::CODE_200, "applications/json");
         }
 
-        ENDPOINT("GET", "/user/{uid}/permission/ch", chPermission, AUTH_HEADER, PATH(Int32, uid),
+        ENDPOINT("POST", "/user/{uid}/permission/ch", chPermission, AUTH_HEADER, PATH(Int32, uid),
                  BODY_DTO(UnorderedSet<Int32>, perms)) {
             AUTH
             if (!USER->hasPerm("ROOT")) {
@@ -82,7 +82,7 @@ namespace ender_label::controller {
             info->addResponse<Object<BaseResponseDto> >(Status::CODE_200, "applications/json");
         }
 
-        ENDPOINT("GET", "/user/add", addUser, AUTH_HEADER, BODY_DTO(Object<data::UserDto>, user_dto)) {
+        ENDPOINT("POST", "/user/add", addUser, AUTH_HEADER, BODY_DTO(Object<data::UserDto>, user_dto)) {
             AUTH
             REQUEST_PARAM_CHECK(user_dto->email)
             REQUEST_PARAM_CHECK(user_dto->password)
@@ -100,7 +100,7 @@ namespace ender_label::controller {
             info->description = "创建用户";
             info->addConsumes<Object<data::UserDto> >("application/json");
             info->addResponse<Object<BaseResponseDto> >(Status::CODE_200, "application/json");
-            info->addSecurityRequirement("ROOT");
+            // info->addSecurityRequirement("ROOT");
         }
 
         ENDPOINT("GET", "/user/{uid}/rm", rmUser, AUTH_HEADER, PATH(Int32, uid)) {
@@ -118,7 +118,7 @@ namespace ender_label::controller {
             info->description = "创建用户";
             info->addConsumes<Object<data::UserDto> >("application/json");
             info->addResponse<Object<BaseResponseDto> >(Status::CODE_200, "application/json");
-            info->addSecurityRequirement("ROOT");
+            // info->addSecurityRequirement("ROOT");
         }
 
         ENDPOINT("GET", "/user/{uid}/info", getUser, AUTH_HEADER, PATH(Int32, uid)) {

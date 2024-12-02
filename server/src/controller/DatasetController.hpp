@@ -45,7 +45,7 @@ namespace ender_label::controller {
             return createDtoResponse(Status::CODE_200, resp);
         }
 
-        ENDPOINT("GET", "/dataset/{dataset_id}/import", importDataset, AUTH_HEADER,
+        ENDPOINT("POST", "/dataset/{dataset_id}/import", importDataset, AUTH_HEADER,
                  PATH(Int32, dataset_id),
                  BODY_DTO(Object<request::ImportDatasetRequestDto>, dto)) {
             AUTH
@@ -73,7 +73,8 @@ namespace ender_label::controller {
             info->addResponse<Object<BaseResponseDto> >(Status::CODE_200, "application/json");
         }
 
-        ENDPOINT("GET", "/dataset/{dataset_id}/export", exportDataset, AUTH_HEADER, PATH(Int32, dataset_id)) {
+        ENDPOINT("POST", "/dataset/{dataset_id}/export", exportDataset, AUTH_HEADER,
+                 BODY_DTO(Object<request::ExportDatasetRequestDto>, dto), PATH(Int32, dataset_id)) {
             AUTH
             const auto resp = SimpleDataResponseDto<String>::createShared();
             const auto dataset = dataset::ImageDataset::getById<dataset::ImageDataset>(dataset_id);

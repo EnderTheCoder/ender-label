@@ -18,7 +18,7 @@
 void run(const oatpp::base::CommandLineArguments &args) {
     ender_label::component::AppComponent appComponent(args);
     ender_label::component::DatabaseComponent databaseComponent;
-    ender_label::component::ClientComponent clientComponent;
+    // ender_label::component::ClientComponent clientComponent;
     ender_label::component::ServiceComponent serviceComponent;
     ender_label::component::SwaggerComponent swaggerComponent;
 
@@ -31,8 +31,11 @@ void run(const oatpp::base::CommandLineArguments &args) {
     oatpp::web::server::api::Endpoints endpoints;
     // append more endpoints here
     endpoints.append(router->addController(ender_label::controller::DefaultController::createShared())->getEndpoints());
+    endpoints.append(router->addController(ender_label::controller::UserController::createShared())->getEndpoints());
+    endpoints.append(router->addController(ender_label::controller::DatasetController::createShared())->getEndpoints());
+
     // swagger is only enabled in dev env.
-    OATPP_COMPONENT(oatpp::Object<ender_label::dto::data::ConfigDto>, config);
+    const OATPP_COMPONENT(oatpp::Object<ender_label::dto::data::ConfigDto>, config);
     if (config->config_type == "development")
         router->
                 addController(oatpp::swagger::Controller::createShared(endpoints));
