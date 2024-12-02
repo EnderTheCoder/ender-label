@@ -12,12 +12,13 @@
 #include "annotation/SegmentationAnnotation.hpp"
 #include "annotation/AnnotationClass.hpp"
 
+#include "Dataset.hpp"
 #include <opencv2/opencv.hpp>
 
 namespace ender_label::service::dataset {
     constexpr char table_name[] = "dataset";
 
-    class ImageDataset : public ServiceBean<table_name, data::DatasetDto> {
+    class ImageDataset : public ServiceBean<table_name, data::DatasetDto>, Dataset {
     public:
         boost::filesystem::path root() {
             using namespace boost::filesystem;
@@ -104,10 +105,10 @@ namespace ender_label::service::dataset {
         virtual void exportVoc() {
         }
 
-        virtual void exportVanilla() {
+        void exportVanilla() override {
         }
 
-        virtual void importVanilla() {
+        void importVanilla() override {
         }
     };
 }

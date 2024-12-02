@@ -8,7 +8,7 @@
 
 #include <dto/response/SimpleDataResponseDto.hpp>
 
-#include "service/dataset/BaseDataset.hpp"
+#include "service/dataset/ImageDataset.hpp"
 #include "service/dataset/annotation/SegmentationAnnotation.hpp"
 #include "service/dataset/annotation/AnnotationMerger.hpp"
 #include "util/AuthUtil.hpp"
@@ -49,7 +49,7 @@ namespace ender_label::controller {
                  PATH(Int32, dataset_id),
                  BODY_DTO(Object<request::ImportDatasetRequestDto>, dto)) {
             AUTH
-            const auto resp = SimpleDataResponseDto<String>::createShared();
+            const auto resp = BaseResponseDto::createShared();
             const auto dataset = dataset::ImageDataset::getById<dataset::ImageDataset>(dataset_id);
             OATPP_ASSERT_HTTP(dataset != nullptr, Status::CODE_404, "Dataset does not exist.")
             OATPP_ASSERT_HTTP(USER->hasPerm("DATASET_UPDATE_["+std::to_string(dataset_id)+"]"), Status::CODE_200,
@@ -68,6 +68,11 @@ namespace ender_label::controller {
             return createDtoResponse(Status::CODE_200, resp);
         }
 
+        ENDPOINT_INFO(importDataset) {
+            info->description = "导入数据库";
+            info->addResponse<Object<BaseResponseDto> >(Status::CODE_200, "application/json");
+        }
+
         ENDPOINT("GET", "/dataset/{dataset_id}/export", exportDataset, AUTH_HEADER, PATH(Int32, dataset_id)) {
             AUTH
             const auto resp = SimpleDataResponseDto<String>::createShared();
@@ -75,6 +80,11 @@ namespace ender_label::controller {
             OATPP_ASSERT_HTTP(dataset != nullptr, Status::CODE_404, "Dataset does not exist.")
             OATPP_ASSERT_HTTP(USER->hasPerm("DATASET_READ_["+std::to_string(dataset_id)+"]"), Status::CODE_200,
                               "Permission denied.")
+        }
+
+        ENDPOINT_INFO(exportDataset) {
+            info->description = "导出数据集";
+            info->addResponse<Object<BaseResponseDto> >(Status::CODE_200, "application/json");
         }
 
         ENDPOINT("GET", "/dataset/rm/{id}", rmDataset, AUTH_HEADER, PATH(Int32, id)) {
