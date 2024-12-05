@@ -12,6 +12,7 @@
 #include "util/ControllerUtil.hpp"
 #include "util/AuthUtil.hpp"
 #include "dto/request/RegisterRequestDto.hpp"
+#include "dto/response/ArrayResponseDto.hpp"
 #include OATPP_CODEGEN_BEGIN(ApiController)
 
 namespace ender_label::controller {
@@ -78,6 +79,21 @@ namespace ender_label::controller {
                 Status::CODE_200, "applications/json");
         }
 
+        ENDPOINT("POST", "/user/permission/all", getAllPermissions, AUTH_HEADER) {
+            AUTH
+            const auto resp = ArrayResponseDto<Object<data::PermissionDto>>::createShared();
+            resp->data = user::Permission::toDtoList(user::Permission::getAll());
+            resp->size = resp->data->size();
+            return createDtoResponse(Status::CODE_200, resp);
+        }
+
+        ENDPOINT_INFO(getAllPermissions) {
+            info->name = "查询所有权限";
+            info->description = "返回一个映射表，主要表现权限id和权限的对应关系，根据该表修改用户的权限。";
+            info->addResponse<ArrayResponseDto<Object<data::PermissionDto>>>(
+                Status::CODE_200, "applications/json");
+        }
+
         ENDPOINT("POST", "/user/{uid}/permission/ch", chPermission, AUTH_HEADER, PATH(Int32, uid),
                  BODY_DTO(UnorderedSet<Int32>, perms)) {
             AUTH
@@ -93,7 +109,7 @@ namespace ender_label::controller {
 
         ENDPOINT_INFO(chPermission) {
             info->name = "修改用户权限";
-            info->description = "需要管理员权限。提交新的权限表覆盖原有权限表。提交一个数组包含权限id，例如[1,3,4]则代表赋予用户id为1,3,4的权限节点。";
+            info->description = "需要管理员权限。提交新的权限表覆盖原有权限表。提交一个列表包含权限id，例如[1,3,4]则代表赋予用户id为1,3,4的权限节点。";
             info->addConsumes<UnorderedSet<Int32> >("application/json", "权限ids");
             info->addResponse<Object<BaseResponseDto> >(Status::CODE_200, "applications/json");
         }
@@ -134,7 +150,6 @@ namespace ender_label::controller {
         ENDPOINT_INFO(rmUser) {
             info->name = "删除用户";
             info->description = "需要管理员权限。提交被删除用户的ID，以删除该用户。";
-            info->addConsumes<Object<data::UserDto> >("application/json");
             info->addResponse<Object<BaseResponseDto> >(Status::CODE_200, "application/json");
             // info->addSecurityRequirement("ROOT");
         }

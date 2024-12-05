@@ -8,7 +8,7 @@ template<typename T>
 class ArrayResponseDto : public SimpleDataResponseDto<oatpp::Vector<T>> {
     DTO_INIT(ArrayResponseDto, SimpleDataResponseDto<oatpp::Vector<T>>)
 
-    DTO_FIELD(oatpp::UInt64, data_count);
+    DTO_FIELD(oatpp::UInt64, size);
 };
 }
 #include OATPP_CODEGEN_END(DTO)
