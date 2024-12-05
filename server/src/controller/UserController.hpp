@@ -81,7 +81,7 @@ namespace ender_label::controller {
 
         ENDPOINT("GET", "/user/permission/all", getAllPermissions, AUTH_HEADER) {
             AUTH
-            const auto resp = ArrayResponseDto<Object<data::PermissionDto>>::createShared();
+            const auto resp = ArrayResponseDto<Object<data::PermissionDto> >::createShared();
             resp->data = user::Permission::toDtoList(user::Permission::getAll());
             resp->size = resp->data->size();
             return createDtoResponse(Status::CODE_200, resp);
@@ -90,7 +90,8 @@ namespace ender_label::controller {
         ENDPOINT_INFO(getAllPermissions) {
             info->name = "查询所有权限";
             info->description = "返回一个映射表，主要表现权限id和权限的对应关系，根据该表修改用户的权限。";
-            info->addResponse<Object<ArrayResponseDto<Object<data::PermissionDto>>>>(Status::CODE_200, "applications/json");
+            info->addResponse<Object<ArrayResponseDto<Object<data::PermissionDto> > > >(
+                Status::CODE_200, "applications/json");
         }
 
         ENDPOINT("POST", "/user/{uid}/permission/ch", chPermission, AUTH_HEADER, PATH(Int32, uid),
@@ -98,6 +99,14 @@ namespace ender_label::controller {
             AUTH
             if (!USER->hasPerm("ROOT")) {
                 ERROR(Status::CODE_403, "Permission denied.")
+            }
+            for (const auto &perm_id: *perms) {
+                auto perm = user::Permission::getById(perm_id);
+                OATPP_ASSERT_HTTP(
+                    perm != nullptr,
+                    Status::CODE_404,
+                    "Request perm id does not exist: " + std::to_string(perm_id)
+                )
             }
             const auto dto = data::UserDto::createShared();
             auto user = user::User::getById<user::User>(uid);
