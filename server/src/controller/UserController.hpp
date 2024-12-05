@@ -90,8 +90,7 @@ namespace ender_label::controller {
         ENDPOINT_INFO(getAllPermissions) {
             info->name = "查询所有权限";
             info->description = "返回一个映射表，主要表现权限id和权限的对应关系，根据该表修改用户的权限。";
-            info->addResponse<ArrayResponseDto<Object<data::PermissionDto>>>(
-                Status::CODE_200, "applications/json");
+            info->addResponse<Object<ArrayResponseDto<Object<data::PermissionDto>>>>(Status::CODE_200, "applications/json");
         }
 
         ENDPOINT("POST", "/user/{uid}/permission/ch", chPermission, AUTH_HEADER, PATH(Int32, uid),
