@@ -13,6 +13,13 @@ namespace ender_label::service::user {
 
     class Permission final : public ServiceBean<table_name_permission, data::PermissionDto> {
     public:
+        static std::shared_ptr<Permission> fromKey(const std::string &key) {
+            if (const auto objs = toWrappedList(getByField("key", String(key), true)); !objs.empty()) {
+                return std::static_pointer_cast<Permission>(objs.front());
+            }
+            return nullptr;
+        }
+
         auto parent() {
             return getById<Permission>(getDto()->parent_id);
         }

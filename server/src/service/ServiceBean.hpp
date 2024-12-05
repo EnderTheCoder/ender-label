@@ -66,7 +66,7 @@ namespace ender_label::service {
             return this->dto;
         }
 
-        void write() {
+        virtual void write() {
             using namespace web::protocol::http;
 
             std::ostringstream sql;

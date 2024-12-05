@@ -60,12 +60,16 @@ namespace ender_label::controller {
             REQUEST_ALL_PARAM_CHECK(req)
             OATPP_ASSERT_HTTP(req->password->size() >= 8, Status::CODE_411, "Password requires at least 8 characters.")
             const auto user_dto = data::UserDto::createShared();
-            user_dto->permission_ids = {};
+            const auto perm_create_database = user::Permission::fromKey("DATASET_CREATE");
+            const auto perm_list_database = user::Permission::fromKey("DATASET_LIST");
+            OATPP_ASSERT_HTTP(perm_create_database != nullptr, Status::CODE_500, "Missing system built-in perm.")
+            OATPP_ASSERT_HTTP(perm_list_database != nullptr, Status::CODE_500, "Missing system built-in perm.")
+            user_dto->permission_ids = {perm_list_database->getId(), perm_create_database->getId()};
             user_dto->email = req->email;
             user_dto->password = req->password;
             user_dto->username = req->username;
             user_dto->session = nullptr;
-            const auto user = user::User::createShared(user_dto);
+            const auto user = user::User::createShared<user::User>(user_dto);
             user->write();
             resp->data = user->getDto();
             return createDtoResponse(Status::CODE_200, resp);

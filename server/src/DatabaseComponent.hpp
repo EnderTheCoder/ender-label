@@ -16,7 +16,7 @@ namespace ender_label::component {
         /**
          * Create database client
          */
-        OATPP_CREATE_COMPONENT(std::shared_ptr<PgDb>, dbComponent)([] {
+        OATPP_CREATE_COMPONENT(std::shared_ptr<PgDb>, db)([] {
 
             const OATPP_COMPONENT(oatpp::Object<dto::data::ConfigDto>, config); // Get config component
 

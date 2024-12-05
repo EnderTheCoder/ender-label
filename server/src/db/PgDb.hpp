@@ -6,6 +6,8 @@
 #define ENDER_LABEL_PGDB_HPP
 
 #include <filesystem>
+#include <dto/data/UserDto.hpp>
+
 #include "oatpp-postgresql/orm.hpp"
 #include "dto/data/ConfigDto.hpp"
 #include OATPP_CODEGEN_BEGIN(DbClient)

@@ -17,16 +17,31 @@
 
 #define ERROR(STATUS, MSG) throw web::protocol::http::HttpError(STATUS, MSG);
 
-namespace ender_label::util{
+namespace ender_label::util {
     class Util {
     public:
         static int setZero() {
             return 0;
         }
 
+        template<typename T>
+        static void eraseValInList(oatpp::Vector<T> &list, T val) {
+            for (auto it = list->begin(); it != list->end(); ++it) {
+                if (*it == val) list->erase(it);
+            }
+        }
+
+        template<typename T>
+        static bool getValInList(oatpp::Vector<T> &list, T val) {
+            for (auto it = list->begin(); it != list->end(); ++it) {
+                if (*it == val) return true;
+            }
+            return false;
+        }
+
         template<class C>
-        static auto splitDto(const std::vector<std::shared_ptr<C>> &data_vector) {
-            auto result = oatpp::Vector<oatpp::Object<decltype(C::createShared()->getDto())>>::createShared();
+        static auto splitDto(const std::vector<std::shared_ptr<C> > &data_vector) {
+            auto result = oatpp::Vector<oatpp::Object<decltype(C::createShared()->getDto())> >::createShared();
             for (const auto &item: data_vector) {
                 result->push_back(item->getDto());
             }
@@ -34,8 +49,8 @@ namespace ender_label::util{
         }
 
         template<class C>
-        static auto splitPreciseDto(const std::vector<std::shared_ptr<C>> &data_vector) {
-            auto result = oatpp::Vector<oatpp::Object<oatpp::DTO>>::createShared();
+        static auto splitPreciseDto(const std::vector<std::shared_ptr<C> > &data_vector) {
+            auto result = oatpp::Vector<oatpp::Object<oatpp::DTO> >::createShared();
             for (const auto &item: data_vector) {
                 result->push_back(item->getPreciseDto());
             }
@@ -43,8 +58,8 @@ namespace ender_label::util{
         }
 
         template<class C, class DTO>
-        static oatpp::Vector<oatpp::Object<DTO>> splitDto(const std::vector<std::shared_ptr<C>> &data_vector) {
-            auto result = oatpp::Vector<oatpp::Object<DTO>>::createShared();
+        static oatpp::Vector<oatpp::Object<DTO> > splitDto(const std::vector<std::shared_ptr<C> > &data_vector) {
+            auto result = oatpp::Vector<oatpp::Object<DTO> >::createShared();
             for (const auto &item: data_vector) {
                 result->push_back(item->getDto());
             }
@@ -52,8 +67,8 @@ namespace ender_label::util{
         }
 
         template<class C, class DTO>
-        static oatpp::Vector<oatpp::Object<DTO>> splitPreciseDto(const std::vector<std::shared_ptr<C>> &data_vector) {
-            auto result = oatpp::Vector<oatpp::Object<DTO>>::createShared();
+        static oatpp::Vector<oatpp::Object<DTO> > splitPreciseDto(const std::vector<std::shared_ptr<C> > &data_vector) {
+            auto result = oatpp::Vector<oatpp::Object<DTO> >::createShared();
             for (const auto &item: data_vector) {
                 result->push_back(item->getPreciseDto());
             }
@@ -109,13 +124,12 @@ namespace ender_label::util{
         static auto copyToUpper(LOWER &lower, UPPER &upper) {
             auto lower_map = LOWER::getPropertiesMap();
             auto upper_map = UPPER::getPropertiesMap();
-            for (const auto &p : lower_map) {
+            for (const auto &p: lower_map) {
                 if (upper_map.contains(p.first)) {
                     upper_map.at(p.first)->set(upper.get(), p.second->get(lower.get()));
                 }
             }
         }
     };
-
 }
 #endif //ENDER_LABEL_UTIL_HPP
