@@ -52,7 +52,7 @@ namespace ender_label::service {
         static auto getFieldStr() {
             std::ostringstream fields;
             for (const auto &item: DTO_TYPE::Wrapper::getPropertiesMap()) {
-                fields << "`" << item.first << "`, ";
+                fields << "\"" << item.first << "\", ";
             }
             const auto str = fields.str();
             return str.substr(0, str.length() - 2);
