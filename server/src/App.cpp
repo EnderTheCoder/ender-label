@@ -37,8 +37,7 @@ void run(const oatpp::base::CommandLineArguments &args) {
     // swagger is only enabled in dev env.
     const OATPP_COMPONENT(oatpp::Object<ender_label::dto::data::ConfigDto>, config);
     if (config->config_type == "development")
-        router->
-                addController(oatpp::swagger::Controller::createShared(endpoints));
+        router->addController(oatpp::swagger::Controller::createShared(endpoints));
     // start sync server
     oatpp::network::Server server(serviceComponent.serverConnectionProvider.getObject(),
                                   serviceComponent.serverConnectionHandler.getObject());
