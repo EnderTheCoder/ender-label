@@ -64,6 +64,11 @@ namespace ender_label::controller {
             const auto perm_list_database = user::Permission::fromKey("DATASET_LIST");
             OATPP_ASSERT_HTTP(perm_create_database != nullptr, Status::CODE_500, "Missing system built-in perm.")
             OATPP_ASSERT_HTTP(perm_list_database != nullptr, Status::CODE_500, "Missing system built-in perm.")
+            if (not user::User::toDtoList(user::User::getByField("username", req->username))->empty()) {
+                resp->code = -100;
+                resp->message = "当前用户名已经被注册";
+                return createDtoResponse(Status::CODE_200, resp);
+            }
             user_dto->permission_ids = {perm_list_database->getId(), perm_create_database->getId()};
             user_dto->email = req->email;
             user_dto->password = req->password;
