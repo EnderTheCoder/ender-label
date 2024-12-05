@@ -55,7 +55,7 @@ namespace ender_label::controller {
                 Status::CODE_200, "applications/json");
         }
 
-        ENDPOINT("GET", "/user/register", _register, BODY_DTO(Object<request::RegisterRequestDto>, req)) {
+        ENDPOINT("POST", "/user/register", _register, BODY_DTO(Object<request::RegisterRequestDto>, req)) {
             const auto resp = SimpleDataResponseDto<Object<data::UserDto> >::createShared();
             REQUEST_ALL_PARAM_CHECK(req)
             OATPP_ASSERT_HTTP(req->password->size() >= 8, Status::CODE_411, "Password requires at least 8 characters.")
@@ -79,7 +79,7 @@ namespace ender_label::controller {
                 Status::CODE_200, "applications/json");
         }
 
-        ENDPOINT("POST", "/user/permission/all", getAllPermissions, AUTH_HEADER) {
+        ENDPOINT("GET", "/user/permission/all", getAllPermissions, AUTH_HEADER) {
             AUTH
             const auto resp = ArrayResponseDto<Object<data::PermissionDto>>::createShared();
             resp->data = user::Permission::toDtoList(user::Permission::getAll());
