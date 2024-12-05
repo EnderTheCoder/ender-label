@@ -11,7 +11,7 @@ create table if not exists ender_label_user
 create table if not exists ender_label_permission
 (
     id        serial primary key,
-    key       varchar[32],
+    key       text,
     parent_id int4,
     "desc"    text
 );
@@ -20,6 +20,11 @@ ALTER TABLE ender_label_permission
     ADD CONSTRAINT fk_permission_parent
         FOREIGN KEY (parent_id)
             REFERENCES ender_label_permission (id);
+
+INSERT INTO ender_label_permission(key, parent_id, "desc")
+VALUES ('ROOT', null, 'ROOT');
+INSERT INTO ender_label_user(USERNAME, EMAIL, PASSWORD, SESSION, PERMISSION_IDS)
+VALUES ('root', 'root@test.com', '123456', null, ARRAY [1]);
 
 create table if not exists ender_label_img_dataset
 (
