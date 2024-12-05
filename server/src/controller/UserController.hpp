@@ -4,8 +4,6 @@
 
 #ifndef USERCONTROLLER_HPP
 #define USERCONTROLLER_HPP
-#include <oatpp/codegen/ApiController_define.hpp>
-#include <oatpp/codegen/ApiController_define.hpp>
 
 #include "service/user/Permission.hpp"
 #include "service/user/User.hpp"
@@ -13,7 +11,7 @@
 #include "dto/response/SimpleDataResponseDto.hpp"
 #include "util/ControllerUtil.hpp"
 #include "util/AuthUtil.hpp"
-
+#include "dto/request/RegisterRequestDto.hpp"
 #include OATPP_CODEGEN_BEGIN(ApiController)
 
 namespace ender_label::controller {
@@ -42,23 +40,40 @@ namespace ender_label::controller {
                 resp->message = "Wrong username or password";
                 return createDtoResponse(Status::CODE_200, resp);
             }
-            resp->data = users.front()->getDto();
+            const auto user = std::static_pointer_cast<user::User>(users.front());
+            user->refreshSession();
+            resp->data = user->getDto();
             return createDtoResponse(Status::CODE_200, resp);
         }
 
         ENDPOINT_INFO(login) {
-            info->description = "登录";
+            info->name = "登录";
+            info->description = "使用帐号密码登陆，在返回数据的data->session中获取后续请求其他接口用于认证的token，保存到前端缓存。";
             info->addConsumes<Object<request::LoginRequestDto> >("application/json");
             info->addResponse<Object<SimpleDataResponseDto<Object<data::UserDto> > > >(
                 Status::CODE_200, "applications/json");
         }
 
-        ENDPOINT("GET", "/user/register", _register) {
+        ENDPOINT("GET", "/user/register", _register, BODY_DTO(Object<request::RegisterRequestDto>, req)) {
+            const auto resp = SimpleDataResponseDto<Object<data::UserDto> >::createShared();
+            REQUEST_ALL_PARAM_CHECK(req)
+            OATPP_ASSERT_HTTP(req->password->size() >= 8, Status::CODE_411, "Password requires at least 8 characters.")
+            const auto user_dto = data::UserDto::createShared();
+            user_dto->permission_ids = {};
+            user_dto->email = req->email;
+            user_dto->password = req->password;
+            user_dto->username = req->username;
+            user_dto->session = nullptr;
+            const auto user = user::User::createShared(user_dto);
+            user->write();
+            resp->data = user->getDto();
+            return createDtoResponse(Status::CODE_200, resp);
         }
 
         ENDPOINT_INFO(_register) {
-            info->description = "注册";
-            info->addConsumes<Object<request::LoginRequestDto> >("application/json");
+            info->name = "注册";
+            info->description = "注册后会返回用户数据。密码要求至少8字符。username，password，email三个字段不能为空.";
+            info->addConsumes<Object<request::RegisterRequestDto> >("application/json");
             info->addResponse<Object<SimpleDataResponseDto<Object<data::UserDto> > > >(
                 Status::CODE_200, "applications/json");
         }
@@ -77,7 +92,8 @@ namespace ender_label::controller {
         }
 
         ENDPOINT_INFO(chPermission) {
-            info->description = "注册";
+            info->name = "修改用户权限";
+            info->description = "需要管理员权限。提交新的权限表覆盖原有权限表。提交一个数组包含权限id，例如[1,3,4]则代表赋予用户id为1,3,4的权限节点。";
             info->addConsumes<UnorderedSet<Int32> >("application/json", "权限ids");
             info->addResponse<Object<BaseResponseDto> >(Status::CODE_200, "applications/json");
         }
@@ -97,7 +113,8 @@ namespace ender_label::controller {
         }
 
         ENDPOINT_INFO(addUser) {
-            info->description = "创建用户";
+            info->name = "创建用户";
+            info->description = "需要管理员权限。使用管理员权限创建一个新的用户，注意除了id字段都需要不为空，id字段省略。";
             info->addConsumes<Object<data::UserDto> >("application/json");
             info->addResponse<Object<BaseResponseDto> >(Status::CODE_200, "application/json");
             // info->addSecurityRequirement("ROOT");
@@ -115,7 +132,8 @@ namespace ender_label::controller {
         }
 
         ENDPOINT_INFO(rmUser) {
-            info->description = "创建用户";
+            info->name = "删除用户";
+            info->description = "需要管理员权限。提交被删除用户的ID，以删除该用户。";
             info->addConsumes<Object<data::UserDto> >("application/json");
             info->addResponse<Object<BaseResponseDto> >(Status::CODE_200, "application/json");
             // info->addSecurityRequirement("ROOT");
@@ -127,11 +145,14 @@ namespace ender_label::controller {
             auto user = user::User::getById<user::User>(uid);
             OATPP_ASSERT_HTTP(user != nullptr, Status::CODE_404, "User not found.")
             resp->data = user->getDto();
+            resp->data->password = nullptr;
+            resp->data->session = nullptr;
             return createDtoResponse(Status::CODE_200, resp);
         }
 
         ENDPOINT_INFO(getUser) {
-            info->description = "创建用户";
+            info->name = "查看用户详情";
+            info->description = "登陆后可以查看用户详情。某些含有关键信息的字段被屏蔽为null。";
             info->addResponse<Object<SimpleDataResponseDto<Object<data::UserDto> > > >(
                 Status::CODE_200, "application/json");
         }
