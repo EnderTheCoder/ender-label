@@ -14,8 +14,6 @@ namespace ender_label::service::dataset {
         virtual void exportVanilla() = 0;
 
         virtual void importVanilla() = 0;
-
-
     };
 }
 
