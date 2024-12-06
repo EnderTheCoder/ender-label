@@ -4,6 +4,8 @@
 
 #ifndef DATASETCONTROLLER_HPP
 #define DATASETCONTROLLER_HPP
+#include <dto/response/ArrayResponseDto.hpp>
+
 #include "dto/request/ImportDatasetRequestDto.hpp"
 
 #include <dto/response/SimpleDataResponseDto.hpp>
@@ -72,7 +74,7 @@ namespace ender_label::controller {
             const auto resp = BaseResponseDto::createShared();
             const auto dataset = dataset::ImageDataset::getById<dataset::ImageDataset>(dataset_id);
             OATPP_ASSERT_HTTP(dataset != nullptr, Status::CODE_404, "Dataset does not exist.")
-            OATPP_ASSERT_HTTP(USER->hasPerm("DATASET_UPDATE_["+std::to_string(dataset_id)+"]"), Status::CODE_200,
+            OATPP_ASSERT_HTTP(USER->hasPerm("DATASET_UPDATE_["+std::to_string(dataset_id)+"]"), Status::CODE_403,
                               "Permission denied.")
             OATPP_ASSERT_HTTP(dto->task_type == "segment", Status::CODE_500, "Unimplemented task type")
             OATPP_ASSERT_HTTP(dto->dataset_type == "image", Status::CODE_500, "Unimplemented dataset type")
@@ -144,7 +146,19 @@ namespace ender_label::controller {
             info->addResponse<Object<BaseResponseDto> >(Status::CODE_200, "application/json");
         }
 
-        ENDPOINT("GET", "/dataset/ls", listDataset) {
+        ENDPOINT("GET", "/dataset/all", listAllDataset, AUTH_HEADER) {
+            AUTH
+            OATPP_ASSERT_HTTP(USER->hasPerm("DATASET_LIST"), Status::CODE_403, "Permission denied.")
+            const auto resp = ArrayResponseDto<Object<data::ImageDatasetDto> >::createShared();
+            resp->data = dataset::ImageDataset::toDtoList(dataset::ImageDataset::getAll());
+            resp->size = resp->data->size();
+            return createDtoResponse(Status::CODE_200, resp);
+        }
+
+        ENDPOINT_INFO(listAllDataset) {
+            info->name = "列出所有数据集";
+            info->description = "";
+            info->addResponse<Object<ArrayResponseDto<Object<data::ImageDatasetDto> >> >(Status::CODE_200, "application/json");
         }
 
         ENDPOINT("GET", "/dataset/ch", chDataset) {
