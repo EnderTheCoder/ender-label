@@ -58,8 +58,8 @@ namespace ender_label::service::user {
             this->overwrite(dto);
         }
 
-        bool getIsSessionValid(const std::string &session) {
-            return this->getDto()->session != nullptr and this->getDto()->session == session;
+        bool getIsSessionValid(const std::string &token) {
+            return this->getDto()->token != nullptr and this->getDto()->token == token;
         }
 
         std::string refreshSession() {
@@ -68,7 +68,7 @@ namespace ender_label::service::user {
             auto result = std::string();
             util::Util::computeHash(origin, result);
             const auto dto = data::UserDto::createShared();
-            dto->session = result;
+            dto->token = result;
             this->overwrite(dto);
             return result;
         }

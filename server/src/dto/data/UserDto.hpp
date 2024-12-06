@@ -34,8 +34,8 @@ namespace ender_label::dto::data {
             info->required = true;
         }
 
-        DTO_FIELD(String, session);
-        DTO_FIELD_INFO(session) {
+        DTO_FIELD(String, token);
+        DTO_FIELD_INFO(token) {
             info->description = "用户的会话（32位随机字符串）";
         }
 

@@ -73,7 +73,7 @@ namespace ender_label::controller {
             user_dto->email = req->email;
             user_dto->password = req->password;
             user_dto->username = req->username;
-            user_dto->session = nullptr;
+            user_dto->token = nullptr;
             const auto user = user::User::createShared<user::User>(user_dto);
             user->write();
             resp->data = user->getDto();
@@ -178,7 +178,7 @@ namespace ender_label::controller {
             OATPP_ASSERT_HTTP(user != nullptr, Status::CODE_404, "User not found.")
             resp->data = user->getDto();
             resp->data->password = nullptr;
-            resp->data->session = nullptr;
+            resp->data->token = nullptr;
             return createDtoResponse(Status::CODE_200, resp);
         }
 

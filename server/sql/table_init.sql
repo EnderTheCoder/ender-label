@@ -4,7 +4,7 @@ create table if not exists ender_label_user
     username       text not null,
     email          text not null,
     password       text not null,
-    session        text,
+    token        text,
     permission_ids int4[]
 );
 
