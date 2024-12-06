@@ -20,8 +20,18 @@ namespace ender_label::service::user {
             return nullptr;
         }
 
+        static auto root() {
+            return fromKey("ROOT");
+        }
+
         auto parent() {
             return getById<Permission>(getDto()->parent_id);
+        }
+
+        auto updateParent(auto id) {
+            const auto dto = data::PermissionDto::createShared();
+            dto->parent_id = id;
+            this->overwrite(dto);
         }
 
         auto uppers() {

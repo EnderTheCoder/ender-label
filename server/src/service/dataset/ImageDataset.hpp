@@ -12,13 +12,15 @@
 #include "annotation/SegmentationAnnotation.hpp"
 #include "annotation/AnnotationClass.hpp"
 
+#include "service/user/Permission.hpp"
+#include "service/user/User.hpp"
 #include "Dataset.hpp"
 #include <opencv2/opencv.hpp>
 
 namespace ender_label::service::dataset {
     constexpr char table_name[] = "ender_label_img_dataset";
 
-    class ImageDataset : public ServiceBean<table_name, data::DatasetDto>, Dataset {
+    class ImageDataset : public ServiceBean<table_name, data::ImageDatasetDto>, Dataset {
     public:
         boost::filesystem::path root() {
             using namespace boost::filesystem;
@@ -37,10 +39,10 @@ namespace ender_label::service::dataset {
             std::function<void(path)> func_list_dir = [&](const auto &_path) {
                 for (directory_iterator it(_path); it != directory_iterator(); ++it) {
                     if (is_regular_file(it->path())) {
-                        if (supported_img_ext.contains(extension(it->path()))) {
+                        if (supported_img_ext.contains(it->path().extension().string())) {
                             img_paths.emplace(it->path());
                         }
-                        if (supported_anno_ext.contains(extension(it->path()))) {
+                        if (supported_anno_ext.contains(it->path().extension().string())) {
                             anno_paths.emplace(it->path());
                         }
                     } else if (is_directory(it->path())) {
@@ -109,6 +111,23 @@ namespace ender_label::service::dataset {
         }
 
         void importVanilla() override {
+        }
+
+        int getDatasetId() override {
+            return this->getId();
+        }
+
+        void initPerm() {
+            const auto root_perm = user::Permission::root();
+            for (const auto &key: getPermKeys()) {
+                const auto dto = data::PermissionDto::createShared();
+                dto->key = key;
+                const auto perm = user::Permission::createShared<user::Permission>(dto);
+                perm->write();
+                perm->updateParent(root_perm->getId());
+                const auto owner = user::User::getById<user::User>(this->getDto()->owner_id);
+                owner->addPerm(key);
+            }
         }
     };
 }

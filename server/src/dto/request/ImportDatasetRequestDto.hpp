@@ -1,12 +1,5 @@
 #ifndef IMPORT_DATASET_REQUEST_DTO_HPP
 #define IMPORT_DATASET_REQUEST_DTO_HPP
-#include <oatpp/codegen/dto/base_define.hpp>
-#include <oatpp/codegen/dto/base_define.hpp>
-#include <oatpp/codegen/dto/base_define.hpp>
-#include <oatpp/codegen/dto/base_define.hpp>
-#include <oatpp/codegen/dto/base_define.hpp>
-#include <oatpp/codegen/dto/base_define.hpp>
-#include <oatpp/codegen/dto/base_define.hpp>
 
 #include "oatpp/core/macro/codegen.hpp"
 #include "oatpp/core/Types.hpp"
@@ -16,7 +9,11 @@ namespace ender_label::dto::request {
     class ImportDatasetRequestDto final : public oatpp::DTO {
         DTO_INIT(ImportDatasetRequestDto, DTO)
 
-        DTO_FIELD(String, type);
+        DTO_FIELD(String, task_type) = "segment";
+
+        DTO_FIELD_INFO(task_type) {
+            info->description = "任务类型，支持：segment, classify, detect, pose";
+        }
 
         DTO_FIELD(String, import_dir);
 
@@ -24,10 +21,16 @@ namespace ender_label::dto::request {
             info->description = "导入扫描路径，必须为一个服务器上的绝对路径";
         }
 
-        DTO_FIELD(String, import_type);
+        DTO_FIELD(String, anno_type) = "yolo";
 
-        DTO_FIELD_INFO(import_type) {
+        DTO_FIELD_INFO(anno_type) {
             info->description = "导入类型，支持：voc, coco, labelme, yolo";
+        }
+
+        DTO_FIELD(String, dataset_type) = "image";
+
+        DTO_FIELD_INFO(dataset_type) {
+            info->description = "数据集类型，当前仅支持image";
         }
 
         DTO_FIELD(List<String>, img_exts);

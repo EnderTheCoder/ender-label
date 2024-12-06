@@ -10,8 +10,8 @@
 #include OATPP_CODEGEN_BEGIN(DTO)
 
 namespace ender_label::dto::data {
-    class DatasetDto : public oatpp::DTO {
-        DTO_INIT(DatasetDto, DTO)
+    class ImageDatasetDto : public oatpp::DTO {
+        DTO_INIT(ImageDatasetDto, DTO)
         DTO_FIELD(Int32, id);
         DTO_FIELD(Int32, owner_id);
         DTO_FIELD(String, name);
