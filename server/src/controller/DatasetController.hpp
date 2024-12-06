@@ -157,7 +157,7 @@ namespace ender_label::controller {
 
         ENDPOINT_INFO(listAllDataset) {
             info->name = "列出所有数据集";
-            info->description = "";
+            info->description = "需要权限DATASET_LIST。";
             info->addResponse<Object<ArrayResponseDto<Object<data::ImageDatasetDto> >> >(Status::CODE_200, "application/json");
         }
 
