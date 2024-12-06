@@ -48,7 +48,16 @@ namespace ender_label::controller {
             dto->owner_id = USER->getId();
             const auto dataset = dataset::ImageDataset::createShared<dataset::ImageDataset>(dto);
             dataset->write();
-            dataset->initPerm();
+            const auto root_perm = user::Permission::root();
+
+            for (const auto keys = dataset->getPermKeys(); const auto &key: keys) {
+                const auto perm_dto = data::PermissionDto::createShared();
+                perm_dto->key = key;
+                const auto perm = user::Permission::createShared<user::Permission>(perm_dto);
+                perm->write();
+                perm->updateParent(root_perm->getId());
+                USER->addPerm(key);
+            }
             return createDtoResponse(Status::CODE_200, resp);
         }
 
@@ -158,7 +167,8 @@ namespace ender_label::controller {
         ENDPOINT_INFO(listAllDataset) {
             info->name = "列出所有数据集";
             info->description = "需要权限DATASET_LIST。";
-            info->addResponse<Object<ArrayResponseDto<Object<data::ImageDatasetDto> >> >(Status::CODE_200, "application/json");
+            info->addResponse<Object<ArrayResponseDto<Object<data::ImageDatasetDto> > > >(
+                Status::CODE_200, "application/json");
         }
 
         ENDPOINT("GET", "/dataset/ch", chDataset) {

@@ -17,7 +17,7 @@
 namespace ender_label::util {
     std::shared_ptr<service::user::User> get_current_user(auto sess) {
         using namespace ender_label::service::user;
-        auto users = User::toWrappedList(User::getByField("token", sess));
+        auto users = User::toWrappedList(User::getByField("token", sess, true));
         if (users.empty()) {
             return nullptr;
         }

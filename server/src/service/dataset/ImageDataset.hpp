@@ -20,7 +20,7 @@
 namespace ender_label::service::dataset {
     constexpr char table_name[] = "ender_label_img_dataset";
 
-    class ImageDataset : public ServiceBean<table_name, data::ImageDatasetDto>, Dataset {
+    class ImageDataset : public ServiceBean<table_name, data::ImageDatasetDto>, public Dataset {
     public:
         boost::filesystem::path root() {
             using namespace boost::filesystem;
@@ -113,21 +113,21 @@ namespace ender_label::service::dataset {
         void importVanilla() override {
         }
 
-        int getDatasetId() override {
-            return this->getId();
+        std::string getUpdatePermKey() {
+            return "DATASET_UPDATE_[" + std::to_string(this->getId()) + "]";
         }
 
-        void initPerm() {
-            const auto root_perm = user::Permission::root();
-            for (const auto &key: getPermKeys()) {
-                const auto dto = data::PermissionDto::createShared();
-                dto->key = key;
-                const auto perm = user::Permission::createShared<user::Permission>(dto);
-                perm->write();
-                perm->updateParent(root_perm->getId());
-                const auto owner = user::User::getById<user::User>(this->getDto()->owner_id);
-                owner->addPerm(key);
-            }
+        std::string getDeletePermKey() {
+            return "DATASET_DELETE_[" + std::to_string(this->getId()) + "]";
+        }
+
+        std::string getReadPermKey() {
+            return "DATASET_READ_[" + std::to_string(this->getId()) + "]";
+        }
+
+        std::vector<std::string> getPermKeys() {
+            auto keys = std::vector{getUpdatePermKey(), getDeletePermKey(), getReadPermKey()};
+            return keys;
         }
     };
 }

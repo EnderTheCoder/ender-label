@@ -84,7 +84,7 @@ namespace ender_label::service {
             int cnt = 0;
             for (const auto &item: params | std::ranges::views::keys) {
                 cnt++;
-                sql_params << *item;
+                sql_params << '"' << *item << '"';
                 sql_values << ":" << *item;
                 if (cnt != params.size()) {
                     sql_params << ", ";

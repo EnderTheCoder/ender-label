@@ -15,23 +15,7 @@ namespace ender_label::service::dataset {
 
         virtual void importVanilla() = 0;
 
-        virtual int getDatasetId() = 0;
 
-        virtual std::string getUpdatePermKey() {
-            return "DATASET_UPDATE_[" + std::to_string(this->getDatasetId()) + "]";
-        }
-
-        virtual std::string getDeletePermKey() {
-            return "DATASET_DELETE_[" + std::to_string(this->getDatasetId()) + "]";
-        }
-
-        virtual std::string getReadPermKey() {
-            return "DATASET_READ_[" + std::to_string(this->getDatasetId()) + "]";
-        }
-
-        virtual std::vector<std::string> getPermKeys() {
-            return {getUpdatePermKey(), getDeletePermKey(), getReadPermKey()};
-        }
     };
 }
 

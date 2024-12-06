@@ -17,6 +17,9 @@ namespace ender_label::service::user {
     public:
         bool hasPerm(const std::string &perm_key) {
             const auto perms = Permission::toDtoList(Permission::getByField("key", String(perm_key)));
+            if (perms->empty()) {
+                return false;
+            }
             return this->hasPerm(perms->front()->id);
         }
 
