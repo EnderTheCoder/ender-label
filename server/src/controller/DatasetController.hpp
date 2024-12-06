@@ -16,6 +16,7 @@
 #include "util/AuthUtil.hpp"
 #include "util/SwaggerUtil.hpp"
 #include "util/ControllerUtil.hpp"
+#include <ranges>
 #include OATPP_CODEGEN_BEGIN(ApiController)
 
 namespace ender_label::controller {
@@ -158,8 +159,24 @@ namespace ender_label::controller {
         ENDPOINT("GET", "/dataset/all", listAllDataset, AUTH_HEADER) {
             AUTH
             OATPP_ASSERT_HTTP(USER->hasPerm("DATASET_LIST"), Status::CODE_403, "Permission denied.")
-            const auto resp = ArrayResponseDto<Object<data::ImageDatasetDto> >::createShared();
-            resp->data = dataset::ImageDataset::toDtoList(dataset::ImageDataset::getAll());
+            const auto resp = ArrayResponseDto<Object<data::SizedImageDatasetDto> >::createShared();
+            const auto dtos = dataset::ImageDataset::toDtoList(dataset::ImageDataset::getAll());
+            resp->data = {};
+            resp->data->resize(dtos->size(), nullptr);
+            for (auto it = dtos->begin(); it != dtos->end(); ++it) {
+                const auto sized_dto = data::SizedImageDatasetDto::createShared();
+                const auto dto = *it;
+                if (dto->img_files == nullptr) {
+                    sized_dto->img_size = 0;
+                } else {
+                    sized_dto->img_size = static_cast<int>(dto->img_files->size());
+                }
+                // TODO: load anno size
+                sized_dto->anno_size = 0;
+                dto->img_files = nullptr;
+                util::Util::copyToUpper(dto, sized_dto);
+                resp->data->at(it - dtos->begin()) = sized_dto;
+            }
             resp->size = resp->data->size();
             return createDtoResponse(Status::CODE_200, resp);
         }
