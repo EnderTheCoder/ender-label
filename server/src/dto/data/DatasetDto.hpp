@@ -4,6 +4,8 @@
 
 #ifndef DATASETDTO_HPP
 #define DATASETDTO_HPP
+#include <oatpp/codegen/dto/base_define.hpp>
+
 #include "annotation/AnnotationClassDto.hpp"
 #include "oatpp/core/macro/codegen.hpp"
 #include "oatpp/core/Types.hpp"
@@ -14,10 +16,28 @@ namespace ender_label::dto::data {
         DTO_INIT(ImageDatasetDto, DTO)
         DTO_FIELD(Int32, id);
         DTO_FIELD(Int32, owner_id);
+        DTO_FIELD_INFO(owner_id) {
+            info->description = "所有者id";
+        }
         DTO_FIELD(String, name);
+        DTO_FIELD_INFO(name) {
+            info->description = "数据集名称";
+            info->required = true;
+        }
         DTO_FIELD(String, desc);
+        DTO_FIELD_INFO(desc) {
+            info->description = "描述";
+            info->required = true;
+        }
         DTO_FIELD(UnorderedSet<String>, img_files);
+        DTO_FIELD_INFO(img_files) {
+            info->description = "包含的图片文件列表";
+        }
         DTO_FIELD(List<Int32>, class_ids);
+        DTO_FIELD_INFO(class_ids) {
+            info->description = "数据集使用的类别id列表";
+            info->required = true;
+        }
     };
 }
 

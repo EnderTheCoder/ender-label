@@ -12,6 +12,7 @@
 #include "service/dataset/annotation/SegmentationAnnotation.hpp"
 #include "service/dataset/annotation/AnnotationMerger.hpp"
 #include "util/AuthUtil.hpp"
+#include "util/SwaggerUtil.hpp"
 #include "util/ControllerUtil.hpp"
 #include OATPP_CODEGEN_BEGIN(ApiController)
 
@@ -38,6 +39,9 @@ namespace ender_label::controller {
             REQUEST_PARAM_CHECK(dto->desc)
             REQUEST_PARAM_CHECK(dto->name)
             OATPP_ASSERT_HTTP(USER->hasPerm("DATASET_CREATE"), Status::CODE_403, "Permission denied.")
+            if (dto->class_ids->empty()) {
+                dto->class_ids = {1};
+            }
             const auto resp = SimpleDataResponseDto<Object<data::ImageDatasetDto> >::createShared();
             dto->owner_id = USER->getId();
             const auto dataset = dataset::ImageDataset::createShared<dataset::ImageDataset>(dto);
@@ -49,8 +53,9 @@ namespace ender_label::controller {
         ENDPOINT_INFO(createDataset) {
             info->name = "创建数据集";
             info->description =
-                    "创建数据集需要具备权限DATASET_CREATE。"
-                    "创建一个空的数据集，所有权归当前登录用户所有。"
+                    "创建数据集需要具备权限DATASET_CREATE。\n"
+                    "创建一个空的数据集，所有权归当前登录用户所有。\n"
+                    + util::swaggerRequiredFields<data::ImageDatasetDto>("必填字段") + "\n" +
                     "接收参数验证class_ids，desc，name字段非空。";
             info->addConsumes<Object<data::ImageDatasetDto> >("application/json");
             info->addResponse<Object<SimpleDataResponseDto<Object<data::ImageDatasetDto> > > >(
@@ -100,10 +105,11 @@ namespace ender_label::controller {
 
         ENDPOINT_INFO(importDataset) {
             info->description =
-                    "向一个已经存在的数据集导入数据。"
-                    "需要确保目录具有访问权限。"
-                    "需要确保目录中包含的图片和标注文件不含有重复文件名。"
-                    "当前仅支持从服务器本地路径进行导入。";
+                    "向一个已经存在的数据集导入数据。\n"
+                    "需要确保目录具有访问权限。\n"
+                    "需要确保目录中包含的图片和标注文件不含有重复文件名。\n"
+                    "当前仅支持从服务器本地路径进行导入。\n"
+                    + util::swaggerRequiredFields<request::ImportDatasetRequestDto>("必填字段") + "\n";
             info->addConsumes<Object<request::ImportDatasetRequestDto> >("application/json");
             info->addResponse<Object<BaseResponseDto> >(Status::CODE_200, "application/json");
         }
@@ -127,7 +133,8 @@ namespace ender_label::controller {
             AUTH
             const auto dataset = dataset::ImageDataset::getById(dataset_id);
             OATPP_ASSERT_HTTP(dataset != nullptr, Status::CODE_404, "Dataset not found.")
-            OATPP_ASSERT_HTTP(USER->hasPerm("DATASET_DELETE_[" + std::to_string(dataset_id) + "]"), Status::CODE_403, "Permission denied.")
+            OATPP_ASSERT_HTTP(USER->hasPerm("DATASET_DELETE_[" + std::to_string(dataset_id) + "]"), Status::CODE_403,
+                              "Permission denied.")
             return createDtoResponse(Status::CODE_200, BaseResponseDto::createShared());
         }
 

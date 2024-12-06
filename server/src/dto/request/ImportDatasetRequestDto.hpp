@@ -13,24 +13,28 @@ namespace ender_label::dto::request {
 
         DTO_FIELD_INFO(task_type) {
             info->description = "任务类型，支持：segment, classify, detect, pose";
+            info->required = true;
         }
 
         DTO_FIELD(String, import_dir);
 
         DTO_FIELD_INFO(import_dir) {
             info->description = "导入扫描路径，必须为一个服务器上的绝对路径";
+            info->required = true;
         }
 
         DTO_FIELD(String, anno_type) = "yolo";
 
         DTO_FIELD_INFO(anno_type) {
             info->description = "导入类型，支持：voc, coco, labelme, yolo";
+            info->required = true;
         }
 
         DTO_FIELD(String, dataset_type) = "image";
 
         DTO_FIELD_INFO(dataset_type) {
             info->description = "数据集类型，当前仅支持image";
+            info->required = true;
         }
 
         DTO_FIELD(List<String>, img_exts);
