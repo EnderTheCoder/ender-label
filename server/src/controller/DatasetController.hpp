@@ -38,13 +38,9 @@ namespace ender_label::controller {
     public:
         ENDPOINT("POST", "/dataset/create", createDataset, BODY_DTO(Object<data::ImageDatasetDto>, dto), AUTH_HEADER) {
             AUTH
-            REQUEST_PARAM_CHECK(dto->class_ids)
             REQUEST_PARAM_CHECK(dto->desc)
             REQUEST_PARAM_CHECK(dto->name)
             OATPP_ASSERT_HTTP(USER->hasPerm("DATASET_CREATE"), Status::CODE_403, "Permission denied.")
-            if (dto->class_ids->empty()) {
-                dto->class_ids = {1};
-            }
             const auto resp = SimpleDataResponseDto<Object<data::ImageDatasetDto> >::createShared();
             dto->owner_id = USER->getId();
             const auto dataset = dataset::ImageDataset::createShared<dataset::ImageDataset>(dto);

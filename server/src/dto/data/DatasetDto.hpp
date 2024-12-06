@@ -42,7 +42,6 @@ namespace ender_label::dto::data {
         DTO_FIELD(List<Int32>, class_ids);
         DTO_FIELD_INFO(class_ids) {
             info->description = "数据集使用的类别id列表";
-            info->required = true;
         }
     };
 
