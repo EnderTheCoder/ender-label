@@ -37,7 +37,7 @@ namespace ender_label::controller {
             REQUEST_PARAM_CHECK(dto->class_ids)
             REQUEST_PARAM_CHECK(dto->desc)
             REQUEST_PARAM_CHECK(dto->name)
-            OATPP_ASSERT_HTTP(USER->hasPerm("DATASET_ADD"), Status::CODE_403, "Permission denied.")
+            OATPP_ASSERT_HTTP(USER->hasPerm("DATASET_CREATE"), Status::CODE_403, "Permission denied.")
             const auto resp = SimpleDataResponseDto<Object<data::ImageDatasetDto> >::createShared();
             dto->owner_id = USER->getId();
             const auto dataset = dataset::ImageDataset::createShared<dataset::ImageDataset>(dto);
@@ -49,7 +49,7 @@ namespace ender_label::controller {
         ENDPOINT_INFO(createDataset) {
             info->name = "创建数据集";
             info->description =
-                    "创建数据集需要具备权限DATASET_ADD。"
+                    "创建数据集需要具备权限DATASET_CREATE。"
                     "创建一个空的数据集，所有权归当前登录用户所有。"
                     "接收参数验证class_ids，desc，name字段非空。";
             info->addConsumes<Object<data::ImageDatasetDto> >("application/json");
@@ -123,14 +123,18 @@ namespace ender_label::controller {
             info->addResponse<Object<BaseResponseDto> >(Status::CODE_200, "application/json");
         }
 
-        ENDPOINT("GET", "/dataset/rm/{id}", rmDataset, AUTH_HEADER, PATH(Int32, id)) {
+        ENDPOINT("GET", "/dataset/{dataset_id}/delete", rmDataset, AUTH_HEADER, PATH(Int32, dataset_id)) {
             AUTH
-            const auto dataset = dataset::ImageDataset::getById(id);
+            const auto dataset = dataset::ImageDataset::getById(dataset_id);
             OATPP_ASSERT_HTTP(dataset != nullptr, Status::CODE_404, "Dataset not found.")
-            OATPP_ASSERT_HTTP((USER->hasPerm("DATASET_RM") and dataset->getDto()->owner_id == USER->getId()) or
-                              USER->hasPerm("DATASET_RM_[" + std::to_string(id) + "]"),
-                              Status::CODE_403, "Permission denied.")
+            OATPP_ASSERT_HTTP(USER->hasPerm("DATASET_DELETE_[" + std::to_string(dataset_id) + "]"), Status::CODE_403, "Permission denied.")
             return createDtoResponse(Status::CODE_200, BaseResponseDto::createShared());
+        }
+
+        ENDPOINT_INFO(rmDataset) {
+            info->name = "删除数据集";
+            info->description = "需要具备DATASET_DELETE权限来删除。";
+            info->addResponse<Object<BaseResponseDto> >(Status::CODE_200, "application/json");
         }
 
         ENDPOINT("GET", "/dataset/ls", listDataset) {
@@ -140,7 +144,6 @@ namespace ender_label::controller {
         }
 
         ENDPOINT("GET", "/dataset/info", getDataset) {
-
         }
     };
 }
