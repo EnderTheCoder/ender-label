@@ -15,13 +15,16 @@
 #include "controller/DatasetController.hpp"
 #include "controller/UserController.hpp"
 
+#include "service/processor/BackgroundImageProcessor.hpp"
+
 void run(const oatpp::base::CommandLineArguments &args) {
     ender_label::component::AppComponent appComponent(args);
     ender_label::component::DatabaseComponent databaseComponent;
     // ender_label::component::ClientComponent clientComponent;
     ender_label::component::ServiceComponent serviceComponent;
     ender_label::component::SwaggerComponent swaggerComponent;
-
+    auto img_processor = ender_label::service::processor::BackgroundImageProcessor::createShared();
+    img_processor->start();
     OATPP_LOGI("Version", VERSION)
     OATPP_LOGD("Server", "Running on %s:%s",
                serviceComponent.serverConnectionProvider.getObject()->getProperty("host").toString()->c_str(),
