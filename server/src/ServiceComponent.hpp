@@ -13,6 +13,7 @@
 #include "oatpp/parser/json/mapping/ObjectMapper.hpp"
 #include "oatpp/core/macro/component.hpp"
 #include "oatpp/web/server/interceptor/AllowCorsGlobal.hpp"
+// #include "service/img/BackgroundImageProcessor.hpp"
 namespace ender_label::component {
     class ServiceComponent {
     private:

@@ -15,6 +15,7 @@
 #include "service/user/Permission.hpp"
 #include "service/user/User.hpp"
 #include "Dataset.hpp"
+#include "Image.hpp"
 #include <opencv2/opencv.hpp>
 
 namespace ender_label::service::dataset {
@@ -31,7 +32,7 @@ namespace ender_label::service::dataset {
         virtual void importYolo(const std::string &s_path,
                                 const std::unordered_set<std::string> &supported_img_ext,
                                 const std::unordered_set<std::string> &supported_anno_ext,
-                                const std::string &type) {
+                                const std::string &task_type) {
             using namespace boost::filesystem;
             const path root(s_path);
             auto img_paths = std::set<path>{};
@@ -51,9 +52,9 @@ namespace ender_label::service::dataset {
                 }
             };
             func_list_dir(root);
-            auto func_import_anno = [&type, this](auto &img_p, auto &anno_p) {
+            auto func_import_anno = [&task_type, this](auto &img_p, auto &anno_p) {
                 using namespace annotation;
-                if (type == "segmentation") {
+                if (task_type == "segmentation") {
                     const auto img = cv::imread(img_p.c_str());
 
                     if (img.empty()) {
@@ -64,7 +65,7 @@ namespace ender_label::service::dataset {
                     const auto anno_dto = data::AnnotationDto::createShared();
                     anno_dto->anno_cls_ids = this->getDto()->class_ids;
                     anno_dto->img_name = basename(img_p);
-                    anno_dto->type = type;
+                    anno_dto->task_type = task_type;
                     anno_dto->owner_id = this->getDto()->owner_id;
                     anno_dto->width = img.cols;
                     anno_dto->height = img.rows;

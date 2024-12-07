@@ -5,8 +5,8 @@
 #ifndef ENDER_LABEL_UTIL_HPP
 #define ENDER_LABEL_UTIL_HPP
 
+#include <fstream>
 #include <iomanip>
-#include <iostream>
 #include <sstream>
 #include <string>
 #include <openssl/evp.h>
@@ -119,6 +119,17 @@ namespace ender_label::util {
                 sprintf(&mdString[i * 2], "%02x", (unsigned int) digest[i]);
             return {mdString};
         }
+
+        static std::string computeFileMd5(const std::filesystem::path &file_path) {
+            std::ifstream file(file_path, std::ios::binary);
+            if (!file.is_open()) {
+                throw std::runtime_error("Cannot open file: " + file_path.string());
+            }
+            const std::string content((std::istreambuf_iterator<char>(file)),
+                                      std::istreambuf_iterator<char>());
+            return computeMd5(content);
+        }
+
 
         template<typename LOWER, typename UPPER>
         static auto copyToUpper(LOWER &lower, UPPER &upper) {

@@ -143,6 +143,7 @@ namespace ender_label::controller {
             OATPP_ASSERT_HTTP(dataset != nullptr, Status::CODE_404, "Dataset not found.")
             OATPP_ASSERT_HTTP(USER->hasPerm("DATASET_DELETE_[" + std::to_string(dataset_id) + "]"), Status::CODE_403,
                               "Permission denied.")
+            dataset->del();
             return createDtoResponse(Status::CODE_200, BaseResponseDto::createShared());
         }
 
@@ -162,14 +163,14 @@ namespace ender_label::controller {
             for (auto it = dtos->begin(); it != dtos->end(); ++it) {
                 const auto sized_dto = data::SizedImageDatasetDto::createShared();
                 const auto dto = *it;
-                if (dto->img_files == nullptr) {
+                if (dto->img_ids == nullptr) {
                     sized_dto->img_size = 0;
                 } else {
-                    sized_dto->img_size = static_cast<int>(dto->img_files->size());
+                    sized_dto->img_size = static_cast<int>(dto->img_ids->size());
                 }
                 // TODO: load anno size
                 sized_dto->anno_size = 0;
-                dto->img_files = nullptr;
+                dto->img_ids = nullptr;
                 util::Util::copyToUpper(dto, sized_dto);
                 resp->data->at(it - dtos->begin()) = sized_dto;
             }
@@ -188,6 +189,31 @@ namespace ender_label::controller {
         }
 
         ENDPOINT("GET", "/dataset/info", getDataset) {
+        }
+
+        ENDPOINT("GET", "/dataset/{dataset_id}/image/list", listImage, QUERY(Int32,page), QUERY(Int32, size)) {
+        }
+
+        ENDPOINT_INFO(listImage) {
+            info->description = "分页查询指定数据集下面的图片";
+        }
+
+        ENDPOINT("GET", "/dataset/{dataset_id}/image/{image_id}/annotation/all", listImageAnnotation,
+                 QUERY(String, task)) {
+
+        }
+
+        ENDPOINT_INFO(listImageAnnotation) {
+            info->description = "列出指定图片下所有标注\n"
+                    "task是可选参数，如果不指定默认为所有标注。";
+        }
+
+        ENDPOINT("POST", "/dataset/{dataset_id}/annotation/save", saveAnnotation) {
+        }
+
+        ENDPOINT_INFO(saveAnnotation) {
+            info->description =
+                    "保存标注，如果不存在则创建，如果存在则覆盖。\n";
         }
     };
 }

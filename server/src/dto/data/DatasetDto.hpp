@@ -4,16 +4,54 @@
 
 #ifndef DATASETDTO_HPP
 #define DATASETDTO_HPP
-#include <oatpp/codegen/dto/base_define.hpp>
-#include <oatpp/codegen/dto/base_define.hpp>
-#include <oatpp/codegen/dto/base_define.hpp>
-
 #include "annotation/AnnotationClassDto.hpp"
 #include "oatpp/core/macro/codegen.hpp"
 #include "oatpp/core/Types.hpp"
 #include OATPP_CODEGEN_BEGIN(DTO)
 
 namespace ender_label::dto::data {
+    class ImageDto final : public oatpp::DTO {
+        DTO_INIT(ImageDto, DTO)
+
+        DTO_FIELD(Int64, id);
+
+        DTO_FIELD(String, relative_path);
+
+        DTO_FIELD_INFO(relative_path) {
+            info->description = "相对路径";
+        }
+
+        // DTO_FIELD(String, format);
+        //
+        // DTO_FIELD_INFO(format) {
+        //     info->description = "文件格式";
+        // }
+
+        DTO_FIELD(UInt64, size);
+
+        DTO_FIELD_INFO(size) {
+            info->description = "文件大小，单位字节Byte";
+        }
+
+        DTO_FIELD(Int32, width);
+
+        DTO_FIELD_INFO(width) {
+            info->description = "宽度，像素";
+        }
+
+        DTO_FIELD(Int32, height);
+
+        DTO_FIELD_INFO(height) {
+            info->description = "高度，像素";
+        }
+
+        DTO_FIELD(String, md5_hash_32);
+
+        DTO_FIELD_INFO(md5_hash_32) {
+            info->description = "md5哈希校验值，32位";
+        }
+    };
+
     class ImageDatasetDto : public oatpp::DTO {
         DTO_INIT(ImageDatasetDto, DTO)
         DTO_FIELD(Int32, id);
@@ -34,8 +72,8 @@ namespace ender_label::dto::data {
             info->required = true;
         }
 
-        DTO_FIELD(UnorderedSet<String>, img_files);
-        DTO_FIELD_INFO(img_files) {
+        DTO_FIELD(UnorderedSet<Int64>, img_ids);
+        DTO_FIELD_INFO(img_ids) {
             info->description = "包含的图片文件列表";
         }
 

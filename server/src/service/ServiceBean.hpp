@@ -271,7 +271,7 @@ namespace ender_label::service {
             this->db->executeQuery(sql.str(), params);
         }
 
-        void del() {
+        virtual void del() {
             using namespace web::protocol::http;
             std::ostringstream sql;
             sql << "DELETE FROM " << TABLE_NAME << " WHERE id = :id";
