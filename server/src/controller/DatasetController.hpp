@@ -17,6 +17,8 @@
 #include "util/SwaggerUtil.hpp"
 #include "util/ControllerUtil.hpp"
 #include <ranges>
+#include <service/processor/BackgroundImageProcessor.hpp>
+
 #include OATPP_CODEGEN_BEGIN(ApiController)
 
 namespace ender_label::controller {
@@ -200,7 +202,6 @@ namespace ender_label::controller {
 
         ENDPOINT("GET", "/dataset/{dataset_id}/image/{image_id}/annotation/all", listImageAnnotation,
                  QUERY(String, task)) {
-
         }
 
         ENDPOINT_INFO(listImageAnnotation) {
@@ -214,6 +215,28 @@ namespace ender_label::controller {
         ENDPOINT_INFO(saveAnnotation) {
             info->description =
                     "保存标注，如果不存在则创建，如果存在则覆盖。\n";
+        }
+
+        ENDPOINT("GET", "/dataset/image/{image_id}/thumbnail", getThumbnail, PATH(Int64, image_id), AUTH_HEADER) {
+            AUTH
+            const auto img = dataset::Image::getById<dataset::Image>(image_id);
+            OATPP_ASSERT_HTTP(img != nullptr, Status::CODE_404, "Requested image does not exist.")
+            const auto thumbnail_path = processor::BackgroundImageProcessor::imgThumbnailPath(
+                img->getDto()->relative_path);
+            auto mat = cv::Mat{};
+            if (exists(thumbnail_path)) {
+                mat = cv::imread(thumbnail_path);
+            } else {
+                mat = img->readCvImgFromDisk();
+            }
+            std::vector<uchar> buffer;
+            imencode(".jpg", mat, buffer);
+            return createResponse(Status::CODE_200, std::string(buffer.begin(), buffer.end()));
+        }
+
+        ENDPOINT_INFO(getThumbnail) {
+            info->description = "获取指定图片的缩略图，如果不存在返回原图";
+            info->addResponse<String>(Status::CODE_200, "image/png");
         }
     };
 }

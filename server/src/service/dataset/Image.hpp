@@ -11,6 +11,7 @@ namespace ender_label::service::dataset {
     namespace fs = std::filesystem;
 
     class Image final : public ServiceBean<table_name_image, data::ImageDto, Int64> {
+    public:
         auto readCvImgFromDisk() {
             const auto img = cv::imread(this->getDto()->relative_path);
             if (img.empty()) {
@@ -19,7 +20,6 @@ namespace ender_label::service::dataset {
             return img;
         }
 
-    public:
         auto readFromFile(const std::filesystem::path &img_file) {
             if (not exists(img_file)) {
                 throw std::runtime_error("Requested path does not exist.");

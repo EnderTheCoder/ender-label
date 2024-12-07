@@ -8,8 +8,6 @@
 
 namespace ender_label::service::processor {
     class BackgroundImageProcessor {
-    private:
-
     public:
         static auto getThumbnailDir() {
             OATPP_COMPONENT(oatpp::Object<data::ConfigDto>, config);
@@ -40,7 +38,7 @@ namespace ender_label::service::processor {
                     for (const auto &img: dataset::Image::toWrappedList(dataset::Image::getAll())) {
                         const auto img_u = std::static_pointer_cast<dataset::Image>(img);
                         if (const auto img_thumbnail_path = imgThumbnailPath(img_u->getDto()->md5_hash_32); not
-                            std::filesystem::exists(img_thumbnail_path)) {
+                            exists(img_thumbnail_path)) {
                             OATPP_LOGI("Thumbnail", "Thumbnail for img[%lld] does not exist, start generating.",
                                        *img_u->getId())
                             auto mat = img_u->genThumbnail();
