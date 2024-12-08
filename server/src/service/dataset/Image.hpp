@@ -7,7 +7,7 @@
 #include <opencv2/opencv.hpp>
 
 namespace ender_label::service::dataset {
-    constexpr char table_name_image[] = "ender_label_image";
+    constexpr char table_name_image[] = "ender_label_img";
     namespace fs = std::filesystem;
 
     class Image final : public ServiceBean<table_name_image, data::ImageDto, Int64> {

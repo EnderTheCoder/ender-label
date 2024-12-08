@@ -4,7 +4,7 @@ create table if not exists ender_label_user
     username       text not null,
     email          text not null,
     password       text not null,
-    token        text,
+    token          text,
     permission_ids int4[]
 );
 
@@ -23,7 +23,7 @@ ALTER TABLE ender_label_permission
 
 INSERT INTO ender_label_permission(key, parent_id, "desc")
 VALUES ('ROOT', null, 'ROOT');
-INSERT INTO ender_label_user(USERNAME, EMAIL, PASSWORD, SESSION, PERMISSION_IDS)
+INSERT INTO ender_label_user(USERNAME, EMAIL, PASSWORD, TOKEN, PERMISSION_IDS)
 VALUES ('root', 'root@test.com', '123456', null, ARRAY [1]);
 
 create table if not exists ender_label_img_dataset
@@ -49,3 +49,12 @@ create table if not exists ender_label_img_dataset_annotation
 );
 
 
+create table if not exists ender_label_img
+(
+    id            serial primary key,
+    relative_path text,
+    size          int8,
+    width         int4,
+    height        int4,
+    md5_hash_32   varchar[32]
+)
