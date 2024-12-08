@@ -47,6 +47,7 @@ namespace ender_label::controller {
             dto->owner_id = USER->getId();
             const auto dataset = dataset::ImageDataset::createShared<dataset::ImageDataset>(dto);
             dataset->write();
+            dataset->initStorage();
             const auto root_perm = user::Permission::root();
 
             for (const auto keys = dataset->getPermKeys(); const auto &key: keys) {
@@ -57,6 +58,7 @@ namespace ender_label::controller {
                 perm->updateParent(root_perm->getId());
                 USER->addPerm(key);
             }
+
             return createDtoResponse(Status::CODE_200, resp);
         }
 

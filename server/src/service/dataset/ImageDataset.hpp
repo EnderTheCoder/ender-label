@@ -19,6 +19,7 @@
 #include <opencv2/opencv.hpp>
 
 namespace ender_label::service::dataset {
+    namespace fs = std::filesystem;
     constexpr char table_name[] = "ender_label_img_dataset";
 
     class ImageDataset final : public ServiceBean<table_name, data::ImageDatasetDto>, public Dataset {
@@ -129,6 +130,20 @@ namespace ender_label::service::dataset {
         std::vector<std::string> getPermKeys() {
             auto keys = std::vector{getUpdatePermKey(), getDeletePermKey(), getReadPermKey()};
             return keys;
+        }
+
+        auto getStorageDir() {
+            OATPP_COMPONENT(oatpp::Object<data::ConfigDto>, config);
+            const auto base = fs::path(config->storage);
+            return base / std::to_string(*this->getId());
+        }
+
+        void initStorage() {
+            if (const auto path = this->getStorageDir(); not exists(path)) {
+                create_directory(path);
+            } else {
+                OATPP_LOGW("DATASET", "Skipping init existing dataset storage path: %s", path.c_str())
+            }
         }
     };
 }
