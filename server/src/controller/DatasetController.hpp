@@ -238,7 +238,7 @@ namespace ender_label::controller {
         }
 
         ENDPOINT_INFO(getThumbnail) {
-            info->description = "获取指定图片的缩略图，如果不存在返回原图";
+            info->description = "获取指定图片的缩略图，如果不存在返回原图。格式为png，不需要传入token。";
             info->addResponse<String>(Status::CODE_200, "image/png");
         }
     };
