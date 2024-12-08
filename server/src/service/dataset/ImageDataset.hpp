@@ -80,11 +80,13 @@ namespace ender_label::service::dataset {
 
             for (const auto &img_path: img_paths) {
                 try {
-                    if (exists(this->root() / img_path.filename())) {
+                    auto dst = this->root() / img_path.filename();
+                    if (exists(dst)) {
                         OATPP_LOGI("DATASET", "Skipping import existing img file: %s", img_path.filename().c_str())
                         continue;
                     }
-                    copy_file(img_path, this->root() / img_path.filename());
+                    copy_file(img_path, dst);
+                    Image::createFromFile(dst);
                     for (const auto &ext: supported_anno_ext) {
                         if (const auto full_p = path(img_path.stem().string() + ext); anno_paths.contains(full_p)) {
                             func_import_anno(img_path, full_p);
