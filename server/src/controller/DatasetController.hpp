@@ -224,7 +224,7 @@ namespace ender_label::controller {
             const auto img = dataset::Image::getById<dataset::Image>(image_id);
             OATPP_ASSERT_HTTP(img != nullptr, Status::CODE_404, "Requested image does not exist.")
             const auto thumbnail_path = processor::BackgroundImageProcessor::imgThumbnailPath(
-                img->getDto()->relative_path);
+                img->getDto()->md5_hash_32);
             auto mat = cv::Mat{};
             if (exists(thumbnail_path)) {
                 mat = cv::imread(thumbnail_path);
