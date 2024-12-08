@@ -8,6 +8,7 @@
 
 namespace ender_label::service::processor {
     class BackgroundImageProcessor {
+        std::atomic<bool> sig_terminate = false;
     public:
         static auto getThumbnailDir() {
             OATPP_COMPONENT(oatpp::Object<data::ConfigDto>, config);
@@ -21,7 +22,7 @@ namespace ender_label::service::processor {
             }
         }
 
-        static auto imgThumbnailPath(auto img_hash) {
+        static auto imgThumbnailPath(const auto& img_hash) {
             return getThumbnailDir() / *(img_hash + ".png");
         }
 
@@ -33,6 +34,7 @@ namespace ender_label::service::processor {
             std::thread t([this] {
                 using namespace std::chrono_literals;
                 while (true) {
+                    if (this->sig_terminate) return;
                     auto thumbnail = getThumbnailDir();
                     // gen thumbnail
                     for (const auto &img: dataset::Image::toWrappedList(dataset::Image::getAll())) {
@@ -49,6 +51,10 @@ namespace ender_label::service::processor {
                 }
             });
             t.detach();
+        }
+
+        void stop() {
+            this->sig_terminate = true;
         }
     };
 }

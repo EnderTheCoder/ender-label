@@ -95,8 +95,8 @@ namespace ender_label::service::dataset::annotation {
                 }
                 dto->polygons->emplace_back(polygon_dto);
             }
-            this->getDto()->width = foreign_dto->imageWidth;
-            this->getDto()->height = foreign_dto->imageHeight;
+            // this->getDto()->width = foreign_dto->imageWidth;
+            // this->getDto()->height = foreign_dto->imageHeight;
         }
 
         std::string toLabelme() override {

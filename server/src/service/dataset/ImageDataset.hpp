@@ -67,8 +67,8 @@ namespace ender_label::service::dataset {
                     anno_dto->img_name = basename(img_p);
                     anno_dto->task_type = task_type;
                     anno_dto->owner_id = this->getDto()->owner_id;
-                    anno_dto->width = img.cols;
-                    anno_dto->height = img.rows;
+                    // anno_dto->width = img.cols;
+                    // anno_dto->height = img.rows;
 
 
                     auto annotation = SegmentationAnnotation::createShared<SegmentationAnnotation>(anno_dto);
