@@ -219,8 +219,7 @@ namespace ender_label::controller {
                     "保存标注，如果不存在则创建，如果存在则覆盖。\n";
         }
 
-        ENDPOINT("GET", "/dataset/image/{image_id}/thumbnail", getThumbnail, PATH(Int64, image_id), AUTH_HEADER) {
-            AUTH
+        ENDPOINT("GET", "/dataset/image/{image_id}/thumbnail", getThumbnail, PATH(Int64, image_id)) {
             const auto img = dataset::Image::getById<dataset::Image>(image_id);
             OATPP_ASSERT_HTTP(img != nullptr, Status::CODE_404, "Requested image does not exist.")
             const auto thumbnail_path = processor::BackgroundImageProcessor::imgThumbnailPath(
