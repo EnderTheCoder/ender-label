@@ -27,7 +27,7 @@ namespace ender_label::service::dataset {
         std::filesystem::path root() {
             using namespace std::filesystem;
             const OATPP_COMPONENT(oatpp::Object<data::ConfigDto>, config);
-            return path(config->storage) / path("databases") / path(std::to_string(this->getDto()->id));
+            return path(config->storage) / "datasets" / path(std::to_string(this->getDto()->id));
         }
 
         virtual void importYolo(const std::string &s_path,
@@ -79,10 +79,15 @@ namespace ender_label::service::dataset {
             };
 
             for (const auto &img_path: img_paths) {
-                copy_file(img_path, this->root() / img_path.filename());
+                if (exists(this->root() / img_path.filename())) {
+                    OATPP_LOGI("DATASET", "Skipping import existing img file: %s", img_path.filename().c_str())
+                    continue;
+                }
+                copy_file(img_path, this->root());
                 for (const auto &ext: supported_anno_ext) {
                     if (const auto full_p = path(img_path.stem().string() + ext); anno_paths.contains(full_p)) {
                         func_import_anno(img_path, full_p);
+                        break;
                     }
                 }
             }

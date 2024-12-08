@@ -49,7 +49,6 @@ namespace ender_label::controller {
             dataset->write();
             dataset->initStorage();
             const auto root_perm = user::Permission::root();
-
             for (const auto keys = dataset->getPermKeys(); const auto &key: keys) {
                 const auto perm_dto = data::PermissionDto::createShared();
                 perm_dto->key = key;
@@ -58,8 +57,7 @@ namespace ender_label::controller {
                 perm->updateParent(root_perm->getId());
                 USER->addPerm(key);
             }
-
-
+            resp->data = dataset->getDto();
             return createDtoResponse(Status::CODE_200, resp);
         }
 
@@ -112,7 +110,7 @@ namespace ender_label::controller {
                     anno_exts.emplace(x);
                 });
             }
-            dataset->importYolo(dto->import_dir, img_exts, anno_exts, "segmentation");
+            dataset->importYolo(dto->import_dir, img_exts, anno_exts, "segment");
             return createDtoResponse(Status::CODE_200, resp);
         }
 
@@ -213,6 +211,7 @@ namespace ender_label::controller {
         }
 
         ENDPOINT("POST", "/dataset/{dataset_id}/annotation/save", saveAnnotation) {
+
         }
 
         ENDPOINT_INFO(saveAnnotation) {
