@@ -23,6 +23,7 @@ void run(const oatpp::base::CommandLineArguments &args) {
     // ender_label::component::ClientComponent clientComponent;
     ender_label::component::ServiceComponent serviceComponent;
     ender_label::component::SwaggerComponent swaggerComponent;
+    ender_label::service::processor::BackgroundImageProcessor::initThumbnailDir();
     auto img_processor = ender_label::service::processor::BackgroundImageProcessor::createShared();
     img_processor->start();
     OATPP_LOGI("Version", VERSION)
