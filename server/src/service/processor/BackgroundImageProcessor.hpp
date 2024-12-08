@@ -9,6 +9,7 @@
 namespace ender_label::service::processor {
     class BackgroundImageProcessor {
         std::atomic<bool> sig_terminate = false;
+
     public:
         static auto getThumbnailDir() {
             OATPP_COMPONENT(oatpp::Object<data::ConfigDto>, config);
@@ -23,7 +24,7 @@ namespace ender_label::service::processor {
             }
         }
 
-        static auto imgThumbnailPath(const auto& img_hash) {
+        static auto imgThumbnailPath(const auto &img_hash) {
             return getThumbnailDir() / *(img_hash + ".png");
         }
 
@@ -38,7 +39,8 @@ namespace ender_label::service::processor {
                     if (this->sig_terminate) return;
                     auto thumbnail = getThumbnailDir();
                     // gen thumbnail
-                    for (const auto &img: dataset::Image::toWrappedList(dataset::Image::getAll())) {
+                    auto success_gen = 0;
+                    for (const auto &img: dataset::Image::toWrappedList(dataset::Image::getAll(true))) {
                         const auto img_u = std::static_pointer_cast<dataset::Image>(img);
                         if (const auto img_thumbnail_path = imgThumbnailPath(img_u->getDto()->md5_hash_32); not
                             exists(img_thumbnail_path)) {
@@ -46,7 +48,11 @@ namespace ender_label::service::processor {
                                        *img_u->getId())
                             auto mat = img_u->genThumbnail();
                             imwrite(thumbnail / *(img_u->getDto()->md5_hash_32 + ".png"), mat);
+                            success_gen++;
                         }
+                    }
+                    if (success_gen != 0) {
+                        OATPP_LOGI("THUMBNAIL", "Thumbnail gen complete: %d succeed.", success_gen)
                     }
                     std::this_thread::sleep_for(100ms);
                 }

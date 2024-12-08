@@ -179,7 +179,7 @@ namespace ender_label::service {
             OATPP_COMPONENT(std::shared_ptr<PgDb>, db);
             std::ostringstream sql;
             sql << "SELECT " << getFieldStr() << "  FROM " << TABLE_NAME;
-            return getList(db->executeQuery(sql.str(), {}));
+            return getList(db->executeQuery(sql.str(), {}), wrapped);
         }
 
         static ID_TYPE count() {

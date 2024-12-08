@@ -27,7 +27,7 @@ namespace ender_label::dto::data {
         //     info->description = "文件格式";
         // }
 
-        DTO_FIELD(UInt64, size);
+        DTO_FIELD(Int64, size);
 
         DTO_FIELD_INFO(size) {
             info->description = "文件大小，单位字节Byte";

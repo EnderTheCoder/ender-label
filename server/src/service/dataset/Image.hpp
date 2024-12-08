@@ -25,7 +25,6 @@ namespace ender_label::service::dataset {
                 throw std::runtime_error("Requested path does not exist.");
             }
             const auto img = cv::imread(img_file.c_str());
-            const auto dto = data::ImageDto::createShared();
             this->getDto()->size = file_size(img_file);
             this->getDto()->relative_path = img_file.string();
             this->getDto()->height = img.rows;
@@ -34,7 +33,8 @@ namespace ender_label::service::dataset {
         }
 
         static auto createFromFile(const std::filesystem::path &img_file) {
-            auto obj = std::make_shared<Image>();
+            const auto dto = data::ImageDto::createShared();
+            const auto obj = createShared<Image>(dto);
             obj->readFromFile(img_file);
             obj->write();
             return obj;

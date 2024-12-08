@@ -56,5 +56,5 @@ create table if not exists ender_label_img
     size          int8,
     width         int4,
     height        int4,
-    md5_hash_32   varchar[32]
+    md5_hash_32   text
 )
