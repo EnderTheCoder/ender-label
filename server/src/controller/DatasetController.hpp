@@ -230,8 +230,10 @@ namespace ender_label::controller {
                 mat = img->readCvImgFromDisk();
             }
             std::vector<uchar> buffer;
-            imencode(".jpg", mat, buffer);
-            return createResponse(Status::CODE_200, std::string(buffer.begin(), buffer.end()));
+            imencode(".png", mat, buffer);
+            auto resp = createResponse(Status::CODE_200, std::string(buffer.begin(), buffer.end()));
+            resp->putHeader("Content-Type", "image/png");
+            return resp;
         }
 
         ENDPOINT_INFO(getThumbnail) {
