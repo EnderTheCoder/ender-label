@@ -59,6 +59,7 @@ namespace ender_label::controller {
                 USER->addPerm(key);
             }
 
+
             return createDtoResponse(Status::CODE_200, resp);
         }
 

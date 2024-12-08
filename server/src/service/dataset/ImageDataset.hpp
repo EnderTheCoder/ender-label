@@ -135,7 +135,7 @@ namespace ender_label::service::dataset {
         auto getStorageDir() {
             OATPP_COMPONENT(oatpp::Object<data::ConfigDto>, config);
             const auto base = fs::path(config->storage);
-            return base / std::to_string(*this->getId());
+            return base / "datasets" / std::to_string(*this->getId());
         }
 
         void initStorage() {
