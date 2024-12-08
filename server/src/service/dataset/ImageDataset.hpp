@@ -24,8 +24,8 @@ namespace ender_label::service::dataset {
 
     class ImageDataset final : public ServiceBean<table_name, data::ImageDatasetDto>, public Dataset {
     public:
-        boost::filesystem::path root() {
-            using namespace boost::filesystem;
+        std::filesystem::path root() {
+            using namespace std::filesystem;
             const OATPP_COMPONENT(oatpp::Object<data::ConfigDto>, config);
             return path(config->storage) / path("databases") / path(std::to_string(this->getDto()->id));
         }
@@ -34,7 +34,7 @@ namespace ender_label::service::dataset {
                                 const std::unordered_set<std::string> &supported_img_ext,
                                 const std::unordered_set<std::string> &supported_anno_ext,
                                 const std::string &task_type) {
-            using namespace boost::filesystem;
+            using namespace std::filesystem;
             const path root(s_path);
             auto img_paths = std::set<path>{};
             auto anno_paths = std::set<path>{};
@@ -55,7 +55,7 @@ namespace ender_label::service::dataset {
             func_list_dir(root);
             auto func_import_anno = [&task_type, this](auto &img_p, auto &anno_p) {
                 using namespace annotation;
-                if (task_type == "segmentation") {
+                if (task_type == "segment") {
                     const auto img = cv::imread(img_p.c_str());
 
                     if (img.empty()) {
@@ -65,7 +65,7 @@ namespace ender_label::service::dataset {
                     auto source = String::loadFromFile(anno_p.c_str());
                     const auto anno_dto = data::AnnotationDto::createShared();
                     anno_dto->anno_cls_ids = this->getDto()->class_ids;
-                    anno_dto->img_name = basename(img_p);
+                    anno_dto->img_name = img_p.filename().string();
                     anno_dto->task_type = task_type;
                     anno_dto->owner_id = this->getDto()->owner_id;
                     // anno_dto->width = img.cols;
@@ -79,7 +79,7 @@ namespace ender_label::service::dataset {
             };
 
             for (const auto &img_path: img_paths) {
-                copy_file(img_path, this->root());
+                copy_file(img_path, this->root() / img_path.filename());
                 for (const auto &ext: supported_anno_ext) {
                     if (const auto full_p = path(img_path.stem().string() + ext); anno_paths.contains(full_p)) {
                         func_import_anno(img_path, full_p);

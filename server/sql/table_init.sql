@@ -32,7 +32,7 @@ create table if not exists ender_label_img_dataset
     owner_id  int4,
     name      text,
     "desc"    text,
-    img_files text[],
+    img_ids int8[],
     class_ids int4[]
 );
 
@@ -51,7 +51,7 @@ create table if not exists ender_label_img_dataset_annotation
 
 create table if not exists ender_label_img
 (
-    id            serial primary key,
+    id            bigserial primary key,
     relative_path text,
     size          int8,
     width         int4,
