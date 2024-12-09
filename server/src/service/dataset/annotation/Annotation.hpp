@@ -17,7 +17,7 @@
 namespace ender_label::service::dataset::annotation {
     constexpr char table_name[] = "ender_label_img_dataset_annotation";
 
-    class Annotation : public ServiceBean<table_name, data::AnnotationDto> {
+    class Annotation : public ServiceBean<table_name, data::AnnotationDto, Int64> {
     public:
         virtual std::string toYolo() = 0;
 
@@ -64,7 +64,6 @@ namespace ender_label::service::dataset::annotation {
 
     class NotImplException final : public TransException {
     public:
-
         explicit NotImplException(const std::string &from, const std::string &to)
             : TransException(from, to, "Trans from " + from + " to " + to + " is not implemented.") {
         }

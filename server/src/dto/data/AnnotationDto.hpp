@@ -16,7 +16,7 @@
 namespace ender_label::dto::data {
     class AnnotationDto : public oatpp::DTO {
         DTO_INIT(AnnotationDto, DTO)
-        DTO_FIELD(Int32, id);
+        DTO_FIELD(Int64, id);
 
         DTO_FIELD(Int32, owner_id);
 
@@ -24,10 +24,10 @@ namespace ender_label::dto::data {
             info->description = "所有者用户id";
         }
 
-        DTO_FIELD(String, img_name);
+        DTO_FIELD(Int64, img_id);
 
-        DTO_FIELD_INFO(img_name) {
-            info->description = "图片文件名";
+        DTO_FIELD_INFO(img_id) {
+            info->description = "图片id";
         }
 
         DTO_FIELD(String, task_type);

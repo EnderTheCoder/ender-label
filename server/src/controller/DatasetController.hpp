@@ -9,7 +9,7 @@
 #include "dto/request/ImportDatasetRequestDto.hpp"
 
 #include <dto/response/SimpleDataResponseDto.hpp>
-
+#include "dto/response/PagedResponseDto.hpp"
 #include "service/dataset/ImageDataset.hpp"
 #include "service/dataset/annotation/SegmentationAnnotation.hpp"
 #include "service/dataset/annotation/AnnotationMerger.hpp"
@@ -194,15 +194,59 @@ namespace ender_label::controller {
         ENDPOINT("GET", "/dataset/info", getDataset) {
         }
 
-        ENDPOINT("GET", "/dataset/{dataset_id}/image/list", listImage, QUERY(Int32,page), QUERY(Int32, size)) {
+        // ENDPOINT("GET", "/dataset/{dataset_id}/image/list", listImage, QUERY(Int32,page), QUERY(Int32, size),
+        //          AUTH_HEADER) {
+        //     AUTH
+        //     OATPP_COMPONENT(std::shared_ptr<PgDb>, db);
+        //     const auto resp = PagedResponseDto<Object<data::ImageDto> >::createShared();
+        //     resp->data = dataset::Image::toDtoList(dataset::Image::page(size, page));
+        //     resp->page_num = page;
+        //     resp->page_size = size;
+        //     resp->page_total = dataset::Image::count(
+        //         db->executeQuery("SELECT count(id) FROM ender_label_img WHERE id in"));
+        //     return createDtoResponse(Status::CODE_200, resp);
+        // }
+        //
+        // ENDPOINT_INFO(listImage) {
+        //     info->description = "分页查询指定数据集下面的图片信息（不包含图片数据，只有图片各项基本信息）";
+        // }
+
+        ENDPOINT("GET", "/dataset/{dataset_id}/image/all", getAllImage, PATH(Int32,dataset_id), AUTH_HEADER) {
+            AUTH
+            const auto dataset = dataset::ImageDataset::getById(dataset_id);
+            OATPP_ASSERT_HTTP(dataset != nullptr, Status::CODE_404, "Requested dataset not found")
+            const auto resp = ArrayResponseDto<Object<data::ImageDto> >::createShared();
+            resp->data = {};
+            for (const auto &img_id: *dataset->getDto()->img_ids) {
+                const auto img = dataset::Image::getById(img_id);
+                if (img == nullptr) {
+                    OATPP_LOGE("DATASET", "Img with id %lld not found.", *img_id);
+                }
+                resp->data->emplace_back(img->getDto());
+            }
+            return createDtoResponse(Status::CODE_200, resp);
         }
 
-        ENDPOINT_INFO(listImage) {
-            info->description = "分页查询指定数据集下面的图片";
+        ENDPOINT_INFO(getAllImage) {
+            info->description = "查询指定数据集下面所有的图片信息（不包含图片数据，只有图片各项基本信息）";
         }
 
         ENDPOINT("GET", "/dataset/{dataset_id}/image/{image_id}/annotation/all", listImageAnnotation,
-                 QUERY(String, task)) {
+                 QUERY(String, task), PATH(Int32, dataset_id), PATH(Int64, image_id)) {
+            const auto dataset = dataset::ImageDataset::getById(dataset_id);
+            const auto image = dataset::Image::getById(image_id);
+            OATPP_ASSERT_HTTP(dataset != nullptr, Status::CODE_200, "Requested dataset does not exist.")
+            OATPP_ASSERT_HTTP(image != nullptr, Status::CODE_200, "Requested image does not exist.")
+
+            for (const auto &img_id: *dataset->getDto()->img_ids) {
+                if (img_id == image->getId()) { goto image_in_dataset_ok; }
+            }
+            throw oatpp::web::protocol::http::HttpError(Status::CODE_400, "Image is not in the dataset.");
+        image_in_dataset_ok:
+            auto resp = ArrayResponseDto<oatpp::Object<data::AnnotationDto> >::createShared();
+            using namespace dataset::annotation;
+            resp->data = Annotation::toDtoList(Annotation::getByField("img_id", image_id));
+            return createDtoResponse(Status::CODE_200, resp);
         }
 
         ENDPOINT_INFO(listImageAnnotation) {
@@ -211,12 +255,10 @@ namespace ender_label::controller {
         }
 
         ENDPOINT("POST", "/dataset/{dataset_id}/annotation/save", saveAnnotation) {
-
         }
 
         ENDPOINT_INFO(saveAnnotation) {
-            info->description =
-                    "保存标注，如果不存在则创建，如果存在则覆盖。\n";
+            info->description = "保存标注，如果不存在则创建，如果存在则覆盖。\n";
         }
 
         ENDPOINT("GET", "/dataset/image/{image_id}/thumbnail", getThumbnail, PATH(Int64, image_id)) {
@@ -239,6 +281,22 @@ namespace ender_label::controller {
 
         ENDPOINT_INFO(getThumbnail) {
             info->description = "获取指定图片的缩略图，如果不存在返回原图。格式为png，不需要传入token。";
+            info->addResponse<String>(Status::CODE_200, "image/png");
+        }
+
+        ENDPOINT("GET", "/dataset/image/{image_id}/source", getImage, PATH(Int64, image_id)) {
+            const auto img = dataset::Image::getById<dataset::Image>(image_id);
+            OATPP_ASSERT_HTTP(img != nullptr, Status::CODE_404, "Requested image does not exist.")
+            auto mat = img->readCvImgFromDisk();
+            std::vector<uchar> buffer;
+            imencode(".png", mat, buffer);
+            auto resp = createResponse(Status::CODE_200, std::string(buffer.begin(), buffer.end()));
+            resp->putHeader("Content-Type", "image/png");
+            return resp;
+        }
+
+        ENDPOINT_INFO(getImage) {
+            info->description = "获取指定图片的原始图，格式为png，不需要传入token。";
             info->addResponse<String>(Status::CODE_200, "image/png");
         }
     };

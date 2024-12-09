@@ -53,7 +53,7 @@ namespace ender_label::service::dataset {
                 }
             };
             func_list_dir(root);
-            auto func_import_anno = [&task_type, this](auto &img_p, auto &anno_p) {
+            auto func_import_anno = [&task_type, this](auto &img_p, auto &anno_p, auto& img_id) {
                 using namespace annotation;
                 if (task_type == "segment") {
                     const auto img = cv::imread(img_p.c_str());
@@ -65,7 +65,7 @@ namespace ender_label::service::dataset {
                     auto source = String::loadFromFile(anno_p.c_str());
                     const auto anno_dto = data::AnnotationDto::createShared();
                     anno_dto->anno_cls_ids = this->getDto()->class_ids;
-                    anno_dto->img_name = img_p.filename().string();
+                    anno_dto->img_id = img_id;
                     anno_dto->task_type = task_type;
                     anno_dto->owner_id = this->getDto()->owner_id;
                     // anno_dto->width = img.cols;
@@ -86,10 +86,11 @@ namespace ender_label::service::dataset {
                         continue;
                     }
                     copy_file(img_path, dst);
-                    Image::createFromFile(dst);
+                    auto img = Image::createFromFile(dst);
                     for (const auto &ext: supported_anno_ext) {
                         if (const auto full_p = path(img_path.stem().string() + ext); anno_paths.contains(full_p)) {
-                            func_import_anno(img_path, full_p);
+                            auto img_id = img->getId();
+                            func_import_anno(img_path, full_p, img_id);
                             break;
                         }
                     }
