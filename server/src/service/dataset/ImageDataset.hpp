@@ -53,7 +53,7 @@ namespace ender_label::service::dataset {
                 }
             };
             func_list_dir(root);
-            auto func_import_anno = [&task_type, this](auto &img_p, auto &anno_p, auto& img_id) {
+            auto func_import_anno = [&task_type, this](auto &img_p, auto &anno_p, auto &img_id) {
                 using namespace annotation;
                 if (task_type == "segment") {
                     const auto img = cv::imread(img_p.c_str());
@@ -77,7 +77,8 @@ namespace ender_label::service::dataset {
                     annotation->write();
                 }
             };
-
+            auto n_dto = data::ImageDatasetDto::createShared();
+            n_dto->img_ids = this->getDto()->img_ids;
             for (const auto &img_path: img_paths) {
                 try {
                     auto dst = this->root() / img_path.filename();
@@ -94,11 +95,18 @@ namespace ender_label::service::dataset {
                             break;
                         }
                     }
+
+                    if (n_dto->img_ids == nullptr) {
+                        n_dto->img_ids = {};
+                    }
+                    n_dto->img_ids->emplace(img->getId());
+
                 } catch (filesystem_error &e) {
                     OATPP_LOGE("DATASET", "Exception while importing image file %s to dataset %d: %s",
                                img_path.c_str(), *this->getId(), e.what())
                 }
             }
+            this->overwrite(n_dto);
         }
 
         virtual void importCoco(const std::string &s_path) {

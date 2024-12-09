@@ -217,13 +217,16 @@ namespace ender_label::controller {
             OATPP_ASSERT_HTTP(dataset != nullptr, Status::CODE_404, "Requested dataset not found")
             const auto resp = ArrayResponseDto<Object<data::ImageDto> >::createShared();
             resp->data = {};
-            for (const auto &img_id: *dataset->getDto()->img_ids) {
-                const auto img = dataset::Image::getById(img_id);
-                if (img == nullptr) {
-                    OATPP_LOGE("DATASET", "Img with id %lld not found.", *img_id);
+            if (dataset->getDto()->img_ids != nullptr) {
+                for (const auto &img_id: *dataset->getDto()->img_ids) {
+                    const auto img = dataset::Image::getById(img_id);
+                    if (img == nullptr) {
+                        OATPP_LOGE("DATASET", "Img with id %lld not found.", *img_id);
+                    }
+                    resp->data->emplace_back(img->getDto());
                 }
-                resp->data->emplace_back(img->getDto());
             }
+            resp->size = resp->data->size();
             return createDtoResponse(Status::CODE_200, resp);
         }
 
