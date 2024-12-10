@@ -110,7 +110,7 @@ namespace ender_label::controller {
                     anno_exts.emplace(x);
                 });
             }
-            dataset->importYolo(dto->import_dir, img_exts, anno_exts, "segment");
+            dataset->importYolo(dto->import_dir, img_exts, anno_exts, TaskType::segment);
             return createDtoResponse(Status::CODE_200, resp);
         }
 
@@ -171,7 +171,7 @@ namespace ender_label::controller {
                 } else {
                     sized_dto->img_size = static_cast<int>(dto->img_ids->size());
                 }
-                // TODO: load anno size
+                //todo: anno size
                 sized_dto->anno_size = 0;
                 dto->img_ids = nullptr;
                 util::Util::copyToUpper(dto, sized_dto);
@@ -240,11 +240,14 @@ namespace ender_label::controller {
             const auto image = dataset::Image::getById(image_id);
             OATPP_ASSERT_HTTP(dataset != nullptr, Status::CODE_200, "Requested dataset does not exist.")
             OATPP_ASSERT_HTTP(image != nullptr, Status::CODE_200, "Requested image does not exist.")
-
-            for (const auto &img_id: *dataset->getDto()->img_ids) {
-                if (img_id == image->getId()) { goto image_in_dataset_ok; }
+            if (dataset->getDto()->img_ids != nullptr) {
+                for (const auto &img_id: *dataset->getDto()->img_ids) {
+                    if (img_id == image->getId()) { goto image_in_dataset_ok; }
+                }
             }
-            throw oatpp::web::protocol::http::HttpError(Status::CODE_400, "Image is not in the dataset.");
+            throw oatpp::web::protocol::http::HttpError(Status::CODE_400,
+                                                        "The image[id:" + std::to_string(*image_id) +
+                                                        "] is not in the dataset.");
         image_in_dataset_ok:
             auto resp = ArrayResponseDto<oatpp::Object<data::AnnotationDto> >::createShared();
             using namespace dataset::annotation;
@@ -257,11 +260,58 @@ namespace ender_label::controller {
                     "task是可选参数，如果不指定默认为所有标注。";
         }
 
-        ENDPOINT("POST", "/dataset/{dataset_id}/annotation/save", saveAnnotation) {
+        ENDPOINT("POST", "/dataset/{dataset_id}/annotation/save", saveAnnotation,
+                 BODY_DTO(Object<data::AnnotationDto>, req), AUTH_HEADER) {
+            AUTH
+            REQUEST_PARAM_CHECK(req->img_id)
+            REQUEST_PARAM_CHECK(req->anno_cls_ids)
+            REQUEST_PARAM_CHECK(req->raw_json)
+            REQUEST_PARAM_CHECK(req->task_type)
+            OATPP_COMPONENT(std::shared_ptr<oatpp::data::mapping::ObjectMapper>, mapper);
+            try {
+                if (req->task_type == TaskType::detect) {
+                    const auto detect_dto = mapper->readFromString<Object<data::annotation::ObjectDetectionDto> >(
+                        req->raw_json);
+                } else if (req->task_type == TaskType::segment) {
+                    const auto segment_dto = mapper->readFromString<Object<data::annotation::SegmentationDto> >(
+                        req->raw_json);
+                    for (const auto &polygon: *segment_dto->polygons) {
+                        OATPP_ASSERT_HTTP(polygon->cls_id != nullptr, Status::CODE_400, "Polygon cls_id field must not be null.")
+                        OATPP_ASSERT_HTTP(polygon->normalized_points != nullptr, Status::CODE_400, "Polygon normalized_points field must not be null.")
+                        OATPP_ASSERT_HTTP(polygon->normalized_points->size()>= 3, Status::CODE_400,
+                                          "There should be at least 3 points in a polygon.")
+                        OATPP_ASSERT_HTTP(
+                            std::ranges::any_of(req->anno_cls_ids->begin(), req->anno_cls_ids->end(), [&polygon](auto& x
+                                ) {
+                                return x == polygon->cls_id;
+                                }), Status::CODE_400,
+                            "Annotation class id used in polygons must be included in json->anno_cls_ids field too.")
+
+                    }
+                } else if (req->task_type == TaskType::pose) {
+                    const auto pose_dto = mapper->readFromString<Object<data::annotation::PoseDto> >(req->raw_json);
+                }
+            } catch (oatpp::parser::ParsingError &e) {
+                throw oatpp::web::protocol::http::HttpError(
+                    Status::CODE_400,
+                    "Unparsable wrong json format for field 'raw_json'.");
+            }
+            req->owner_id = USER->getId();
+            const auto img = dataset::Image::getById(req->img_id);
+            OATPP_ASSERT_HTTP(img != nullptr, Status::CODE_404, "Requested image not found.")
+            for (const auto &anno_cls_id: *req->anno_cls_ids) {
+                OATPP_ASSERT_HTTP(dataset::annotation::AnnotationClass::getById(anno_cls_id) != nullptr,
+                                  Status::CODE_404, "Requested annotation class not found.")
+            }
+            const auto anno = dataset::annotation::Annotation::createShared(req);
+            anno->write();
+            const auto resp = SimpleDataResponseDto<Object<data::AnnotationDto> >::createShared();
+            resp->data = anno->getDto();
+            return createDtoResponse(Status::CODE_200, resp);
         }
 
         ENDPOINT_INFO(saveAnnotation) {
-            info->description = "保存标注，如果不存在则创建，如果存在则覆盖。\n";
+            info->description = "保存标注，如果不存在则创建，如果存在则覆盖。\n" + util::swaggerRequiredFields<data::AnnotationDto>();
         }
 
         ENDPOINT("GET", "/dataset/image/{image_id}/thumbnail", getThumbnail, PATH(Int64, image_id)) {

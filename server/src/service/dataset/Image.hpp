@@ -66,6 +66,13 @@ namespace ender_label::service::dataset {
             fs::remove(path);
             ServiceBean::del();
         }
+
+        auto getNumAnno() {
+            OATPP_COMPONENT(std::shared_ptr<PgDb>, db);
+            return count(db->executeQuery(
+                "SELECT COUNT(id) FROM ender_label_img_dataset_annotation WHERE img_id = :img_id",
+                {{"img_id", this->getId()}}));
+        }
     };
 }
 

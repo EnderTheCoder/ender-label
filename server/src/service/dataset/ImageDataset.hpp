@@ -33,7 +33,7 @@ namespace ender_label::service::dataset {
         virtual void importYolo(const std::string &s_path,
                                 const std::unordered_set<std::string> &supported_img_ext,
                                 const std::unordered_set<std::string> &supported_anno_ext,
-                                const std::string &task_type) {
+                                const TaskType &task_type) {
             using namespace std::filesystem;
             const path root(s_path);
             auto img_paths = std::set<path>{};
@@ -55,7 +55,7 @@ namespace ender_label::service::dataset {
             func_list_dir(root);
             auto func_import_anno = [&task_type, this](auto &img_p, auto &anno_p, auto &img_id) {
                 using namespace annotation;
-                if (task_type == "segment") {
+                if (task_type == TaskType::segment) {
                     const auto img = cv::imread(img_p.c_str());
 
                     if (img.empty()) {
@@ -100,7 +100,6 @@ namespace ender_label::service::dataset {
                         n_dto->img_ids = {};
                     }
                     n_dto->img_ids->emplace(img->getId());
-
                 } catch (filesystem_error &e) {
                     OATPP_LOGE("DATASET", "Exception while importing image file %s to dataset %d: %s",
                                img_path.c_str(), *this->getId(), e.what())
