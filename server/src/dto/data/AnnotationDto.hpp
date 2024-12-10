@@ -52,7 +52,7 @@ namespace ender_label::dto::data {
 
         DTO_FIELD_INFO(anno_cls_ids) {
             info->required = true;
-            info->description = "标注使用的类别id列表，应和数据库的保持一致";
+            info->description = "标注使用的类别id列表，应和数据集的保持一致";
         }
     };
 }
