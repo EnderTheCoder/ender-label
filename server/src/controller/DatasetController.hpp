@@ -233,11 +233,12 @@ namespace ender_label::controller {
         ENDPOINT_INFO(getAllImage) {
             info->name = "获取数据集图片基本信息";
             info->description = "查询指定数据集下面所有的图片信息（不包含图片数据，只有图片各项基本信息）";
-            info->addResponse<Object<ArrayResponseDto<Object<data::ImageDto> >>>(Status::CODE_200, "application/json");
+            info->addResponse<Object<ArrayResponseDto<Object<
+                data::ImageDto> > > >(Status::CODE_200, "application/json");
         }
 
         ENDPOINT("GET", "/dataset/{dataset_id}/image/{image_id}/annotation/all", listImageAnnotation,
-                 QUERY(String, task), PATH(Int32, dataset_id), PATH(Int64, image_id)) {
+                 QUERY(Enum<TaskType>::AsString, task), PATH(Int32, dataset_id), PATH(Int64, image_id)) {
             const auto dataset = dataset::ImageDataset::getById(dataset_id);
             const auto image = dataset::Image::getById(image_id);
             OATPP_ASSERT_HTTP(dataset != nullptr, Status::CODE_200, "Requested dataset does not exist.")
@@ -253,7 +254,13 @@ namespace ender_label::controller {
         image_in_dataset_ok:
             auto resp = ArrayResponseDto<oatpp::Object<data::AnnotationDto> >::createShared();
             using namespace dataset::annotation;
-            resp->data = Annotation::toDtoList(Annotation::getByField("img_id", image_id));
+            resp->data = {};
+            for (const auto &anno_dto: *Annotation::toDtoList(Annotation::getByField("img_id", image_id)) |
+                                       std::views::filter([&task](auto &x) {
+                                           return x->task_type == task;
+                                       })) {
+                resp->data->push_back(anno_dto);
+            }
             return createDtoResponse(Status::CODE_200, resp);
         }
 
@@ -328,15 +335,27 @@ namespace ender_label::controller {
                 OATPP_ASSERT_HTTP(dataset::annotation::AnnotationClass::getById(anno_cls_id) != nullptr,
                                   Status::CODE_404, "Requested annotation class not found.")
             }
-            const auto anno = dataset::annotation::Annotation::createShared(req);
-            anno->write();
+            std::shared_ptr<dataset::annotation::Annotation> anno = nullptr;
+            if (req->id == nullptr) {
+                anno = dataset::annotation::Annotation::createShared<dataset::annotation::Annotation>(req);
+                anno->write();
+            } else {
+                anno = dataset::annotation::Annotation::getById<dataset::annotation::Annotation>(req->id);
+                OATPP_ASSERT_HTTP(anno != nullptr, Status::CODE_404,
+                                  "Requested annotation[id:"+std::to_string(*req->id)+"] not found")
+                anno->overwrite(req, {"raw_json", "anno_cls_ids"});
+            }
+
             const auto resp = SimpleDataResponseDto<Object<data::AnnotationDto> >::createShared();
             resp->data = anno->getDto();
             return createDtoResponse(Status::CODE_200, resp);
         }
 
         ENDPOINT_INFO(saveAnnotation) {
-            info->description = "保存标注，如果不存在则创建，如果存在则覆盖。\n" + util::swaggerRequiredFields<data::AnnotationDto>();
+            info->description = "保存标注，如果不存在则创建，如果存在则覆盖。\n" +
+                                util::swaggerRequiredFields<data::AnnotationDto>() + "\n" +
+                                "如果填写id字段将覆盖源有标注，如果不填写id字段则创建新标注，注意如果填写id字段。\n"
+                                "如果是覆盖原有的标注，只填写id(必填), raw_json(选填), anno_cls_ids(选填)这三个字段。";
         }
 
         ENDPOINT("GET", "/dataset/image/{image_id}/thumbnail", getThumbnail, PATH(Int64, image_id)) {
