@@ -256,17 +256,39 @@ namespace ender_label::controller {
         }
 
         ENDPOINT_INFO(listImageAnnotation) {
+            info->name = "获取图片的所有标注";
             info->description = "列出指定图片下所有标注\n"
                     "task是可选参数，如果不指定默认为所有标注。";
+            info->addResponse<Object<ArrayResponseDto<oatpp::Object<data::AnnotationDto> > > >(
+                Status::CODE_200, "application/json");
+        }
+
+        ENDPOINT("GET", "/dataset/{dataset_id}/annotation/class/all", getDatasetAnnoClass, PATH(Int32, dataset_id),
+                 AUTH_HEADER) {
+            AUTH
+            auto dataset = dataset::ImageDataset::getById<dataset::ImageDataset>(dataset_id);
+            OATPP_ASSERT_HTTP(dataset != nullptr, Status::CODE_404, "Requested dataset not found.")
+            const auto resp = ArrayResponseDto<Object<data::annotation::AnnotationClassDto> >::createShared();
+            resp->data = dataset->getClasses();
+            return createDtoResponse(Status::CODE_200, resp);
+        }
+
+        ENDPOINT_INFO(getDatasetAnnoClass) {
+            info->name = "获取数据集标注类别映射表";
+            info->description = "返回指定数据集标注使用的类别的映射表";
+            info->addResponse<Object<ArrayResponseDto<Object<data::annotation::AnnotationClassDto> > > >(
+                Status::CODE_200, "application/json");
         }
 
         ENDPOINT("POST", "/dataset/{dataset_id}/annotation/save", saveAnnotation,
-                 BODY_DTO(Object<data::AnnotationDto>, req), AUTH_HEADER) {
+                 BODY_DTO(Object<data::AnnotationDto>, req), AUTH_HEADER, PATH(Int32, dataset_id)) {
             AUTH
             REQUEST_PARAM_CHECK(req->img_id)
             REQUEST_PARAM_CHECK(req->anno_cls_ids)
             REQUEST_PARAM_CHECK(req->raw_json)
             REQUEST_PARAM_CHECK(req->task_type)
+            auto dataset = dataset::ImageDataset::getById(dataset_id);
+            OATPP_ASSERT_HTTP(dataset!= nullptr, Status::CODE_404, "Requested dataset not found.")
             OATPP_COMPONENT(std::shared_ptr<oatpp::data::mapping::ObjectMapper>, mapper);
             try {
                 if (req->task_type == TaskType::detect) {
@@ -276,17 +298,18 @@ namespace ender_label::controller {
                     const auto segment_dto = mapper->readFromString<Object<data::annotation::SegmentationDto> >(
                         req->raw_json);
                     for (const auto &polygon: *segment_dto->polygons) {
-                        OATPP_ASSERT_HTTP(polygon->cls_id != nullptr, Status::CODE_400, "Polygon cls_id field must not be null.")
-                        OATPP_ASSERT_HTTP(polygon->normalized_points != nullptr, Status::CODE_400, "Polygon normalized_points field must not be null.")
+                        OATPP_ASSERT_HTTP(polygon->cls_id != nullptr, Status::CODE_400,
+                                          "Polygon cls_id field must not be null.")
+                        OATPP_ASSERT_HTTP(polygon->normalized_points != nullptr, Status::CODE_400,
+                                          "Polygon normalized_points field must not be null.")
                         OATPP_ASSERT_HTTP(polygon->normalized_points->size()>= 3, Status::CODE_400,
                                           "There should be at least 3 points in a polygon.")
                         OATPP_ASSERT_HTTP(
-                            std::ranges::any_of(req->anno_cls_ids->begin(), req->anno_cls_ids->end(), [&polygon](auto& x
-                                ) {
+                            std::ranges::any_of(req->anno_cls_ids->begin(), req->anno_cls_ids->end(),
+                                [&polygon](auto& x) {
                                 return x == polygon->cls_id;
                                 }), Status::CODE_400,
                             "Annotation class id used in polygons must be included in json->anno_cls_ids field too.")
-
                     }
                 } else if (req->task_type == TaskType::pose) {
                     const auto pose_dto = mapper->readFromString<Object<data::annotation::PoseDto> >(req->raw_json);

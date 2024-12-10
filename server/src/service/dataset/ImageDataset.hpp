@@ -165,6 +165,18 @@ namespace ender_label::service::dataset {
                 OATPP_LOGW("DATASET", "Skipping init existing dataset storage path: %s", path.c_str())
             }
         }
+
+        auto getClasses() {
+            const auto vec = Vector<Object<annotation::AnnotationClassDto>>::createShared();
+            for (const auto &anno_cls_id: *this->getDto()->class_ids) {
+                const auto anno_cls = annotation::AnnotationClass::getById(anno_cls_id);
+                if (anno_cls) {
+                    throw std::runtime_error("AnnotationClass[id:" + std::to_string(anno_cls_id) + "] not found, broken data.");
+                }
+                vec->push_back(anno_cls->getDto());
+            }
+            return vec;
+        }
     };
 }
 
