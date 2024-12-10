@@ -231,7 +231,9 @@ namespace ender_label::controller {
         }
 
         ENDPOINT_INFO(getAllImage) {
+            info->name = "获取数据集图片基本信息";
             info->description = "查询指定数据集下面所有的图片信息（不包含图片数据，只有图片各项基本信息）";
+            info->addResponse<Object<ArrayResponseDto<Object<data::ImageDto> >>>(Status::CODE_200, "application/json");
         }
 
         ENDPOINT("GET", "/dataset/{dataset_id}/image/{image_id}/annotation/all", listImageAnnotation,
