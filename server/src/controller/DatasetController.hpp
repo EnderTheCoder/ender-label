@@ -354,7 +354,7 @@ namespace ender_label::controller {
         ENDPOINT_INFO(saveAnnotation) {
             info->description = "保存标注，如果不存在则创建，如果存在则覆盖。\n" +
                                 util::swaggerRequiredFields<data::AnnotationDto>() + "\n" +
-                                "如果填写id字段将覆盖源有标注，如果不填写id字段则创建新标注，注意如果填写id字段。\n"
+                                "如果填写id字段将覆盖源有标注，如果不填写id字段则创建新标注。\n"
                                 "如果是覆盖原有的标注，只填写id(必填), raw_json(选填), anno_cls_ids(选填)这三个字段。";
         }
 
