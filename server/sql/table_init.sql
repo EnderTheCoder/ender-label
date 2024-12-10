@@ -41,7 +41,7 @@ create table if not exists ender_label_img_dataset_annotation
     id           bigserial primary key,
     owner_id     int4,
     img_id       int8,
-    task_type         text,
+    task_type    text,
     raw_json     json,
     width        int8,
     height       int8,
@@ -57,4 +57,11 @@ create table if not exists ender_label_img
     width         int4,
     height        int4,
     md5_hash_32   text
-)
+);
+
+create table if not exists ender_label_annotation_class
+(
+    id     serial primary key,
+    key    text,
+    "desc" text
+);

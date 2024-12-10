@@ -9,7 +9,7 @@
 
 namespace ender_label::service::dataset::annotation {
     using namespace data::annotation;
-    constexpr char table_name_anno_cls[] = "annotation_class";
+    constexpr char table_name_anno_cls[] = "ender_label_annotation_class";
 
     class AnnotationClass final : public ServiceBean<table_name_anno_cls, AnnotationClassDto> {
     };
