@@ -54,7 +54,7 @@ namespace ender_label::service::processor {
                     if (success_gen != 0) {
                         OATPP_LOGI("THUMBNAIL", "Thumbnail gen complete: %d succeed.", success_gen)
                     }
-                    std::this_thread::sleep_for(100ms);
+                    std::this_thread::sleep_for(1000ms);
                 }
             });
             t.detach();

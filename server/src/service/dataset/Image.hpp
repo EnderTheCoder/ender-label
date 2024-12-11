@@ -25,7 +25,7 @@ namespace ender_label::service::dataset {
                 throw std::runtime_error("Requested path does not exist.");
             }
             const auto img = cv::imread(img_file.c_str());
-            this->getDto()->size = file_size(img_file);
+            this->getDto()->size = static_cast<long long>(file_size(img_file));
             this->getDto()->relative_path = img_file.string();
             this->getDto()->height = img.rows;
             this->getDto()->width = img.cols;
