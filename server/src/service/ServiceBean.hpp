@@ -8,7 +8,7 @@
 #include <ranges>
 
 #include "boost/format.hpp"
-#include "dto/request/PagedRequestDto.hpp"
+#include "dto/request/PaginationRequestDto.hpp"
 #include "dto/data/CountDto.hpp"
 #include "variant"
 #include "sstream"
@@ -202,10 +202,15 @@ namespace ender_label::service {
             return vec->front()->count;
         }
 
+        static auto getPaginationOffset(const auto &page_num, const auto &page_size) {
+            return Int32((page_num - 1) * page_size);
+        }
+
         template<int max_page_size = 100>
         static std::variant<std::vector<std::shared_ptr<ServiceBean> >, Vector<Object<DTO_TYPE> > >
-        page(const Int32 &page_size, const Int32 &page_num, const Boolean &wrapped = false, const String &order = "id",
-             const Boolean &desc = false) {
+        paginate(const Int32 &page_size, const Int32 &page_num, const Boolean &wrapped = false,
+                 const String &order = "id",
+                 const Boolean &desc = false) {
             checkPage(page_size, page_num, max_page_size);
             OATPP_COMPONENT(std::shared_ptr<PgDb>, db);
             boost::format fmt("SELECT %4% FROM %1% ORDER BY %2% LIMIT :limit OFFSET :offset %3%");
@@ -215,22 +220,22 @@ namespace ender_label::service {
             fmt % getFieldStr();
             const auto res = db->executeQuery(fmt.str(), {
                                                   {"limit", page_size},
-                                                  {"offset", Int32((page_num - 1) * page_size)}
+                                                  {"offset", getPaginationOffset(page_num, page_size)}
                                               });
             return getList(res, wrapped);
         }
 
         template<int max_page_size = 100>
         static auto
-        page(const Object<PagedRequestDto> &dto, const Boolean &wrapped = false, const String &order = "id",
-             const Boolean &desc = false) {
-            return page<max_page_size>(dto->page_size, dto->page_num, wrapped, order, desc);
+        paginate(const Object<PaginationRequestDto> &dto, const Boolean &wrapped = false, const String &order = "id",
+                 const Boolean &desc = false) {
+            return paginate<max_page_size>(dto->page_size, dto->page_num, wrapped, order, desc);
         }
 
         template<int max_page_size = 100>
         static auto
-        page(const std::shared_ptr<oatpp::orm::QueryResult> &res, const oatpp::Object<PagedRequestDto> &request,
-             const Boolean &wrapped = false) {
+        paginate(const std::shared_ptr<oatpp::orm::QueryResult> &res, const oatpp::Object<PaginationRequestDto> &request,
+                 const Boolean &wrapped = false) {
             using namespace web::protocol::http;
             checkPage(request->page_size, request->page_num, max_page_size);
             return getList(res, wrapped);

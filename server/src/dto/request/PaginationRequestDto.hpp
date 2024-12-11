@@ -9,8 +9,8 @@
 #include "oatpp/core/Types.hpp"
 #include OATPP_CODEGEN_BEGIN(DTO)
 namespace ender_label::dto {
-    class PagedRequestDto : public oatpp::DTO {
-        DTO_INIT(PagedRequestDto, oatpp::DTO)
+    class PaginationRequestDto : public oatpp::DTO {
+        DTO_INIT(PaginationRequestDto, oatpp::DTO)
 
         DTO_FIELD(Int32, page_size);
 
