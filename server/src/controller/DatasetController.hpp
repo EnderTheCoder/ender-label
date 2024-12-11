@@ -303,7 +303,7 @@ namespace ender_label::controller {
                 switch (*req->task_type) {
                     case TaskType::detect: {
                         const auto detect_dto = mapper->readFromString<Object<data::annotation::ObjectDetectionDto> >(
-                        req->raw_json);
+                            req->raw_json);
                         for (const auto &bbox: *detect_dto->bboxes) {
                             OATPP_ASSERT_HTTP(bbox->cls_id != nullptr, Status::CODE_400,
                                               "Bbox cls_id field must not be null.")
@@ -328,7 +328,7 @@ namespace ender_label::controller {
                     }
                     case TaskType::segment: {
                         const auto segment_dto = mapper->readFromString<Object<data::annotation::SegmentationDto> >(
-                        req->raw_json);
+                            req->raw_json);
                         for (const auto &polygon: *segment_dto->polygons) {
                             OATPP_ASSERT_HTTP(polygon->cls_id != nullptr, Status::CODE_400,
                                               "Polygon cls_id field must not be null.")
@@ -343,9 +343,11 @@ namespace ender_label::controller {
                                     }), Status::CODE_400,
                                 "Annotation class id used in polygons must be included in json->anno_cls_ids field too.")
                             OATPP_ASSERT_HTTP(
-                                std::ranges::none_of(polygon->normalized_points->begin(), polygon->normalized_points->end(),
+                                std::ranges::none_of(polygon->normalized_points->begin(), polygon->normalized_points->
+                                    end(),
                                     [](auto& x) {
-                                    return x == nullptr or x->size() !=2 or x[0]==nullptr or x[1]==nullptr or x[0] < 0 or x[
+                                    return x == nullptr or x->size() !=2 or x[0]==nullptr or x[1]==nullptr or x[0] < 0
+                                    or x[
                                         0] > 1 or x[1] < 0 or x[1] >1;
                                     }), Status::CODE_400, "Exceed normalized points axis range limit [0, 1]")
                         }
@@ -362,8 +364,13 @@ namespace ender_label::controller {
                                     }), Status::CODE_400,
                                 "Annotation class id used in points must be included in json->anno_cls_ids field too.")
                             OATPP_ASSERT_HTTP(
-                                point->normalized_x > 0 and point->normalized_x < 1 and point->normalized_y > 0 and point->
-                                normalized_y < 1, Status::CODE_400, "Exceed normalized points axis range limit [0, 1]")
+                                point->normalized_x != nullptr and
+                                point->normalized_y != nullptr and
+                                point->normalized_x > 0 and
+                                point->normalized_x < 1 and
+                                point->normalized_y > 0 and
+                                point->normalized_y < 1,
+                                Status::CODE_400, "Exceed normalized points axis range limit [0, 1]")
                         }
                         break;
                     }
