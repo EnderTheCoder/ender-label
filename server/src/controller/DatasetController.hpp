@@ -296,14 +296,16 @@ namespace ender_label::controller {
             REQUEST_PARAM_CHECK(req->anno_cls_ids)
             REQUEST_PARAM_CHECK(req->raw_json)
             REQUEST_PARAM_CHECK(req->task_type)
-            auto dataset = dataset::ImageDataset::getById(dataset_id);
-            OATPP_ASSERT_HTTP(dataset!= nullptr, Status::CODE_404, "Requested dataset not found.")
+            const auto dataset = dataset::ImageDataset::getById(dataset_id);
+            OATPP_ASSERT_HTTP(dataset!= nullptr, Status::CODE_404,
+                              "Requested dataset[id:"+std::to_string(*dataset_id)+"] not found.")
             OATPP_COMPONENT(std::shared_ptr<oatpp::data::mapping::ObjectMapper>, mapper);
             try {
                 switch (*req->task_type) {
                     case TaskType::detect: {
                         const auto detect_dto = mapper->readFromString<Object<data::annotation::ObjectDetectionDto> >(
                             req->raw_json);
+                        OATPP_ASSERT_HTTP(detect_dto->bboxes != nullptr, Status::CODE_400, "Field bboxes cannot be null, use empty list instead.")
                         for (const auto &bbox: *detect_dto->bboxes) {
                             OATPP_ASSERT_HTTP(bbox->cls_id != nullptr, Status::CODE_400,
                                               "Bbox cls_id field must not be null.")
@@ -329,6 +331,8 @@ namespace ender_label::controller {
                     case TaskType::segment: {
                         const auto segment_dto = mapper->readFromString<Object<data::annotation::SegmentationDto> >(
                             req->raw_json);
+                        OATPP_ASSERT_HTTP(segment_dto->polygons != nullptr, Status::CODE_400, "Field polygons cannot be null, use empty list instead.")
+                        OATPP_ASSERT_HTTP(segment_dto->masks != nullptr, Status::CODE_400, "Field masks cannot be null, use empty list instead.")
                         for (const auto &polygon: *segment_dto->polygons) {
                             OATPP_ASSERT_HTTP(polygon->cls_id != nullptr, Status::CODE_400,
                                               "Polygon cls_id field must not be null.")
@@ -343,17 +347,21 @@ namespace ender_label::controller {
                                     }), Status::CODE_400,
                                 "Annotation class id used in polygons must be included in json->anno_cls_ids field too.")
                             OATPP_ASSERT_HTTP(
-                                std::ranges::none_of(polygon->normalized_points->begin(), polygon->normalized_points->
+                                std::ranges::none_of(polygon->normalized_points->begin(), polygon->normalized_points
+                                    ->
                                     end(),
                                     [](auto& x) {
-                                    return x == nullptr or x->size() !=2 or x[0]==nullptr or x[1]==nullptr or x[0] < 0
+                                    return x == nullptr or x->size() !=2 or x[0]==nullptr or x[1]==nullptr or x[0] <
+                                    0
                                     or x[
                                         0] > 1 or x[1] < 0 or x[1] >1;
                                     }), Status::CODE_400, "Exceed normalized points axis range limit [0, 1]")
                         }
+                        break;
                     }
                     case TaskType::pose: {
                         const auto pose_dto = mapper->readFromString<Object<data::annotation::PoseDto> >(req->raw_json);
+                        OATPP_ASSERT_HTTP(pose_dto->points != nullptr, Status::CODE_400, "Field points cannot be null, use empty list instead.")
                         for (const auto &point: *pose_dto->points) {
                             OATPP_ASSERT_HTTP(point->cls_id != nullptr, Status::CODE_400,
                                               "Point cls_id field must not be null.")
