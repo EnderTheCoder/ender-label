@@ -351,14 +351,16 @@ namespace ender_label::controller {
                                     }), Status::CODE_400,
                                 "Annotation class id used in polygons must be included in json->anno_cls_ids field too.")
                             OATPP_ASSERT_HTTP(
-                                std::ranges::none_of(polygon->normalized_points->begin(), polygon->normalized_points
-                                    ->
-                                    end(),
+                                std::ranges::none_of(
+                                    polygon->normalized_points->begin(),
+                                    polygon->normalized_points->end(),
                                     [](auto& x) {
-                                    return x == nullptr or x->size() !=2 or x[0]==nullptr or x[1]==nullptr or x[0] <
-                                    0
-                                    or x[
-                                        0] > 1 or x[1] < 0 or x[1] >1;
+                                    return
+                                    x == nullptr or
+                                    x->size() !=2 or
+                                    x[0] == nullptr or
+                                    x[1] == nullptr or
+                                    x[0] < 0 or x[0] > 1 or x[1] < 0 or x[1] >1;
                                     }), Status::CODE_400, "Exceed normalized points axis range limit [0, 1]")
                         }
                         break;
@@ -391,7 +393,7 @@ namespace ender_label::controller {
             } catch (oatpp::parser::ParsingError &e) {
                 throw oatpp::web::protocol::http::HttpError(
                     Status::CODE_400,
-                    "Unparsable wrong json format for field 'raw_json'.");
+                    "Unparsable wrong json format for field 'raw_json'." + std::string(e.what()));
             }
             req->owner_id = USER->getId();
             const auto img = dataset::Image::getById(req->img_id);

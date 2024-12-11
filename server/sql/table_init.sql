@@ -43,8 +43,6 @@ create table if not exists ender_label_img_dataset_annotation
     img_id       int8,
     task_type    text,
     raw_json     text,
-    width        int8,
-    height       int8,
     anno_cls_ids int4[]
 );
 
