@@ -133,7 +133,7 @@ namespace ender_label::service {
             if (std::holds_alternative<Vector<Object<DTO_TYPE> > >(list)) {
                 return std::get<Vector<Object<DTO_TYPE> > >(list);
             }
-            return nullptr;
+            return {};
         }
 
         static std::vector<std::shared_ptr<ServiceBean> > toWrappedList(auto list) {

@@ -255,12 +255,11 @@ namespace ender_label::controller {
             auto resp = ArrayResponseDto<oatpp::Object<data::AnnotationDto> >::createShared();
             using namespace dataset::annotation;
             resp->data = {};
-            for (const auto &anno_dto: *Annotation::toDtoList(Annotation::getByField("img_id", image_id)) |
-                                       std::views::filter([&task](auto &x) {
-                                           return x->task_type == task;
-                                       })) {
-                resp->data->push_back(anno_dto);
+            for (const auto anno_list = Annotation::toDtoList(Annotation::getByField("img_id", image_id));
+                 const auto &anno_dto: *anno_list) {
+                if (anno_dto->task_type == task) resp->data->push_back(anno_dto);
             }
+            resp->size = resp->data->size();
             return createDtoResponse(Status::CODE_200, resp);
         }
 
