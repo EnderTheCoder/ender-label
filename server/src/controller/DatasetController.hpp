@@ -292,7 +292,8 @@ namespace ender_label::controller {
         ENDPOINT("POST", "/dataset/{dataset_id}/annotation/save", saveAnnotation,
                  BODY_DTO(Object<data::AnnotationDto>, req), AUTH_HEADER, PATH(Int32, dataset_id)) {
             AUTH
-            REQUEST_PARAM_CHECK(req->img_id)
+            if (req->id == nullptr)
+                REQUEST_PARAM_CHECK(req->img_id)
             REQUEST_PARAM_CHECK(req->anno_cls_ids)
             REQUEST_PARAM_CHECK(req->raw_json)
             REQUEST_PARAM_CHECK(req->task_type)
@@ -305,7 +306,8 @@ namespace ender_label::controller {
                     case TaskType::detect: {
                         const auto detect_dto = mapper->readFromString<Object<data::annotation::ObjectDetectionDto> >(
                             req->raw_json);
-                        OATPP_ASSERT_HTTP(detect_dto->bboxes != nullptr, Status::CODE_400, "Field bboxes cannot be null, use empty list instead.")
+                        OATPP_ASSERT_HTTP(detect_dto->bboxes != nullptr, Status::CODE_400,
+                                          "Field bboxes cannot be null, use empty list instead.")
                         for (const auto &bbox: *detect_dto->bboxes) {
                             OATPP_ASSERT_HTTP(bbox->cls_id != nullptr, Status::CODE_400,
                                               "Bbox cls_id field must not be null.")
@@ -331,8 +333,10 @@ namespace ender_label::controller {
                     case TaskType::segment: {
                         const auto segment_dto = mapper->readFromString<Object<data::annotation::SegmentationDto> >(
                             req->raw_json);
-                        OATPP_ASSERT_HTTP(segment_dto->polygons != nullptr, Status::CODE_400, "Field polygons cannot be null, use empty list instead.")
-                        OATPP_ASSERT_HTTP(segment_dto->masks != nullptr, Status::CODE_400, "Field masks cannot be null, use empty list instead.")
+                        OATPP_ASSERT_HTTP(segment_dto->polygons != nullptr, Status::CODE_400,
+                                          "Field polygons cannot be null, use empty list instead.")
+                        OATPP_ASSERT_HTTP(segment_dto->masks != nullptr, Status::CODE_400,
+                                          "Field masks cannot be null, use empty list instead.")
                         for (const auto &polygon: *segment_dto->polygons) {
                             OATPP_ASSERT_HTTP(polygon->cls_id != nullptr, Status::CODE_400,
                                               "Polygon cls_id field must not be null.")
@@ -361,7 +365,8 @@ namespace ender_label::controller {
                     }
                     case TaskType::pose: {
                         const auto pose_dto = mapper->readFromString<Object<data::annotation::PoseDto> >(req->raw_json);
-                        OATPP_ASSERT_HTTP(pose_dto->points != nullptr, Status::CODE_400, "Field points cannot be null, use empty list instead.")
+                        OATPP_ASSERT_HTTP(pose_dto->points != nullptr, Status::CODE_400,
+                                          "Field points cannot be null, use empty list instead.")
                         for (const auto &point: *pose_dto->points) {
                             OATPP_ASSERT_HTTP(point->cls_id != nullptr, Status::CODE_400,
                                               "Point cls_id field must not be null.")
@@ -396,17 +401,23 @@ namespace ender_label::controller {
                                   Status::CODE_404, "Requested annotation class not found.")
             }
             std::shared_ptr<dataset::annotation::Annotation> anno = nullptr;
+            const auto resp = SimpleDataResponseDto<Object<data::AnnotationDto> >::createShared();
+
             if (req->id == nullptr) {
                 anno = dataset::annotation::Annotation::createShared<dataset::annotation::Annotation>(req);
                 anno->write();
+                resp->code = 100;
+                resp->message = "写入新标注成功";
             } else {
                 anno = dataset::annotation::Annotation::getById<dataset::annotation::Annotation>(req->id);
                 OATPP_ASSERT_HTTP(anno != nullptr, Status::CODE_404,
                                   "Requested annotation[id:"+std::to_string(*req->id)+"] not found")
-                anno->overwrite(req, {"raw_json", "anno_cls_ids"});
+                req->img_id = nullptr;
+                anno->overwrite(req, {"raw_json", "anno_cls_ids", "task_type", "owner_id"});
+                resp->code = 200;
+                resp->message = "覆盖原有标注成功";
             }
 
-            const auto resp = SimpleDataResponseDto<Object<data::AnnotationDto> >::createShared();
             resp->data = anno->getDto();
             return createDtoResponse(Status::CODE_200, resp);
         }
@@ -415,7 +426,7 @@ namespace ender_label::controller {
             info->description = "保存标注，如果不存在则创建，如果存在则覆盖。\n" +
                                 util::swaggerRequiredFields<data::AnnotationDto>() + "\n" +
                                 "如果填写id字段将覆盖源有标注，如果不填写id字段则创建新标注。\n"
-                                "如果是覆盖原有的标注，只填写id(必填), raw_json(选填), anno_cls_ids(选填)这三个字段。";
+                                "如果是覆盖原有的标注，只填写id(必填), task_type(必填), raw_json(选填), anno_cls_ids(选填)这4个字段。";
         }
 
         ENDPOINT("GET", "/dataset/image/{image_id}/thumbnail", getThumbnail, PATH(Int64, image_id)) {
