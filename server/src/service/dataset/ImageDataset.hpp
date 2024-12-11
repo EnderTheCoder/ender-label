@@ -7,7 +7,6 @@
 
 #include "service/ServiceBean.hpp"
 #include "dto/data/DatasetDto.hpp"
-#include <boost/filesystem.hpp>
 
 #include "annotation/SegmentationAnnotation.hpp"
 #include "annotation/AnnotationClass.hpp"

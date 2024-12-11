@@ -18,7 +18,7 @@
 #include "util/ControllerUtil.hpp"
 #include <ranges>
 #include <service/processor/BackgroundImageProcessor.hpp>
-
+#include "service/dataset/AnnotationTask.hpp"
 #include OATPP_CODEGEN_BEGIN(ApiController)
 
 namespace ender_label::controller {
