@@ -300,54 +300,73 @@ namespace ender_label::controller {
             OATPP_ASSERT_HTTP(dataset!= nullptr, Status::CODE_404, "Requested dataset not found.")
             OATPP_COMPONENT(std::shared_ptr<oatpp::data::mapping::ObjectMapper>, mapper);
             try {
-                if (req->task_type == TaskType::detect) {
-                    const auto detect_dto = mapper->readFromString<Object<data::annotation::ObjectDetectionDto> >(
+                switch (*req->task_type) {
+                    case TaskType::detect: {
+                        const auto detect_dto = mapper->readFromString<Object<data::annotation::ObjectDetectionDto> >(
                         req->raw_json);
-                    for (const auto &bbox: *detect_dto->bboxes) {
-                        OATPP_ASSERT_HTTP(bbox->cls_id != nullptr, Status::CODE_400,
-                                          "Bbox cls_id field must not be null.")
-                        OATPP_ASSERT_HTTP(
-                            std::ranges::any_of(req->anno_cls_ids->begin(), req->anno_cls_ids->end(),
-                                [&bbox](auto& x) {
-                                return x != nullptr and x == bbox->cls_id;
-                                }), Status::CODE_400,
-                            "Annotation class id used in bboxes must be included in json->anno_cls_ids field too.")
-                        OATPP_ASSERT_HTTP(bbox->normalized_xyxy != nullptr, Status::CODE_400,
-                                          "Bbox normalized_xyxy field must not be null.")
-                        OATPP_ASSERT_HTTP(bbox->normalized_xyxy->size() == 4, Status::CODE_400,
-                                          "Bbox normalized_xyxy must contains 4 points.")
-                        OATPP_ASSERT_HTTP(
-                            std::ranges::none_of(bbox->normalized_xyxy->begin(), bbox->normalized_xyxy->end(),
-                                [](auto& x) {
-                                return x>1 or x<0;
-                                }), Status::CODE_400,
-                            "Bbox normalized_xyxy val must be in range [0, 1].")
+                        for (const auto &bbox: *detect_dto->bboxes) {
+                            OATPP_ASSERT_HTTP(bbox->cls_id != nullptr, Status::CODE_400,
+                                              "Bbox cls_id field must not be null.")
+                            OATPP_ASSERT_HTTP(
+                                std::ranges::any_of(req->anno_cls_ids->begin(), req->anno_cls_ids->end(),
+                                    [&bbox](auto& x) {
+                                    return x != nullptr and x == bbox->cls_id;
+                                    }), Status::CODE_400,
+                                "Annotation class id used in bboxes must be included in json->anno_cls_ids field too.")
+                            OATPP_ASSERT_HTTP(bbox->normalized_xyxy != nullptr, Status::CODE_400,
+                                              "Bbox normalized_xyxy field must not be null.")
+                            OATPP_ASSERT_HTTP(bbox->normalized_xyxy->size() == 4, Status::CODE_400,
+                                              "Bbox normalized_xyxy must contains 4 points.")
+                            OATPP_ASSERT_HTTP(
+                                std::ranges::none_of(bbox->normalized_xyxy->begin(), bbox->normalized_xyxy->end(),
+                                    [](auto& x) {
+                                    return x>1 or x<0;
+                                    }), Status::CODE_400,
+                                "Bbox normalized_xyxy val must be in range [0, 1].")
+                        }
+                        break;
                     }
-                } else if (req->task_type == TaskType::segment) {
-                    const auto segment_dto = mapper->readFromString<Object<data::annotation::SegmentationDto> >(
+                    case TaskType::segment: {
+                        const auto segment_dto = mapper->readFromString<Object<data::annotation::SegmentationDto> >(
                         req->raw_json);
-                    for (const auto &polygon: *segment_dto->polygons) {
-                        OATPP_ASSERT_HTTP(polygon->cls_id != nullptr, Status::CODE_400,
-                                          "Polygon cls_id field must not be null.")
-                        OATPP_ASSERT_HTTP(polygon->normalized_points != nullptr, Status::CODE_400,
-                                          "Polygon normalized_points field must not be null.")
-                        OATPP_ASSERT_HTTP(polygon->normalized_points->size()>= 3, Status::CODE_400,
-                                          "There should be at least 3 points in a polygon.")
-                        OATPP_ASSERT_HTTP(
-                            std::ranges::any_of(req->anno_cls_ids->begin(), req->anno_cls_ids->end(),
-                                [&polygon](auto& x) {
-                                return x != nullptr and x == polygon->cls_id;
-                                }), Status::CODE_400,
-                            "Annotation class id used in polygons must be included in json->anno_cls_ids field too.")
-                        OATPP_ASSERT_HTTP(
-                            std::ranges::none_of(polygon->normalized_points->begin(), polygon->normalized_points->end(),
-                                [](auto& x) {
-                                return x == nullptr or x->size() !=2 or x[0]==nullptr or x[1]==nullptr or x[0] < 0 or x[
-                                    0] > 1 or x[1] < 0 or x[1] >1;
-                                }), Status::CODE_400, "Exceed normalized points axis range limit [0, 1]")
+                        for (const auto &polygon: *segment_dto->polygons) {
+                            OATPP_ASSERT_HTTP(polygon->cls_id != nullptr, Status::CODE_400,
+                                              "Polygon cls_id field must not be null.")
+                            OATPP_ASSERT_HTTP(polygon->normalized_points != nullptr, Status::CODE_400,
+                                              "Polygon normalized_points field must not be null.")
+                            OATPP_ASSERT_HTTP(polygon->normalized_points->size()>= 3, Status::CODE_400,
+                                              "There should be at least 3 points in a polygon.")
+                            OATPP_ASSERT_HTTP(
+                                std::ranges::any_of(req->anno_cls_ids->begin(), req->anno_cls_ids->end(),
+                                    [&polygon](auto& x) {
+                                    return x != nullptr and x == polygon->cls_id;
+                                    }), Status::CODE_400,
+                                "Annotation class id used in polygons must be included in json->anno_cls_ids field too.")
+                            OATPP_ASSERT_HTTP(
+                                std::ranges::none_of(polygon->normalized_points->begin(), polygon->normalized_points->end(),
+                                    [](auto& x) {
+                                    return x == nullptr or x->size() !=2 or x[0]==nullptr or x[1]==nullptr or x[0] < 0 or x[
+                                        0] > 1 or x[1] < 0 or x[1] >1;
+                                    }), Status::CODE_400, "Exceed normalized points axis range limit [0, 1]")
+                        }
                     }
-                } else if (req->task_type == TaskType::pose) {
-                    const auto pose_dto = mapper->readFromString<Object<data::annotation::PoseDto> >(req->raw_json);
+                    case TaskType::pose: {
+                        const auto pose_dto = mapper->readFromString<Object<data::annotation::PoseDto> >(req->raw_json);
+                        for (const auto &point: *pose_dto->points) {
+                            OATPP_ASSERT_HTTP(point->cls_id != nullptr, Status::CODE_400,
+                                              "Point cls_id field must not be null.")
+                            OATPP_ASSERT_HTTP(
+                                std::ranges::any_of(req->anno_cls_ids->begin(), req->anno_cls_ids->end(),
+                                    [&point](auto& x) {
+                                    return x != nullptr and x == point->cls_id;
+                                    }), Status::CODE_400,
+                                "Annotation class id used in points must be included in json->anno_cls_ids field too.")
+                            OATPP_ASSERT_HTTP(
+                                point->normalized_x > 0 and point->normalized_x < 1 and point->normalized_y > 0 and point->
+                                normalized_y < 1, Status::CODE_400, "Exceed normalized points axis range limit [0, 1]")
+                        }
+                        break;
+                    }
                 }
             } catch (oatpp::parser::ParsingError &e) {
                 throw oatpp::web::protocol::http::HttpError(
