@@ -316,9 +316,14 @@ namespace ender_label::controller {
                         OATPP_ASSERT_HTTP(
                             std::ranges::any_of(req->anno_cls_ids->begin(), req->anno_cls_ids->end(),
                                 [&polygon](auto& x) {
-                                return x == polygon->cls_id;
+                                return x != nullptr and x == polygon->cls_id;
                                 }), Status::CODE_400,
                             "Annotation class id used in polygons must be included in json->anno_cls_ids field too.")
+                        OATPP_ASSERT_HTTP(
+                            std::ranges::none_of(polygon->normalized_points->begin(), polygon->normalized_points->end(),
+                                [](auto& x) {
+                                return x == nullptr or x->size() !=2 or x[0] < 0 or x[0] > 1 or x[1] < 0 or x[1] >1;
+                                }), Status::CODE_400, "Exceed normalized points axis range limit [0, 1]")
                     }
                 } else if (req->task_type == TaskType::pose) {
                     const auto pose_dto = mapper->readFromString<Object<data::annotation::PoseDto> >(req->raw_json);
