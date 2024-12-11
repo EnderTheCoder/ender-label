@@ -18,7 +18,7 @@
 #include "util/ControllerUtil.hpp"
 #include <ranges>
 #include <service/processor/BackgroundImageProcessor.hpp>
-#include "service/dataset/AnnotationTask.hpp"
+#include "service/dataset/task/AnnotationTask.hpp"
 #include OATPP_CODEGEN_BEGIN(ApiController)
 
 namespace ender_label::controller {
@@ -252,7 +252,7 @@ namespace ender_label::controller {
                                                         "The image[id:" + std::to_string(*image_id) +
                                                         "] is not in the dataset.");
         image_in_dataset_ok:
-            auto resp = ArrayResponseDto<oatpp::Object<data::AnnotationDto> >::createShared();
+            auto resp = ArrayResponseDto<oatpp::Object<data::annotation::AnnotationDto> >::createShared();
             using namespace dataset::annotation;
             resp->data = {};
             for (const auto anno_list = Annotation::toDtoList(Annotation::getByField("img_id", image_id));
@@ -267,7 +267,7 @@ namespace ender_label::controller {
             info->name = "获取图片的所有标注";
             info->description = "列出指定图片下所有标注\n"
                     "task是可选参数，如果不指定默认为所有标注。";
-            info->addResponse<Object<ArrayResponseDto<oatpp::Object<data::AnnotationDto> > > >(
+            info->addResponse<Object<ArrayResponseDto<oatpp::Object<data::annotation::AnnotationDto> > > >(
                 Status::CODE_200, "application/json");
         }
 
@@ -289,7 +289,7 @@ namespace ender_label::controller {
         }
 
         ENDPOINT("POST", "/dataset/{dataset_id}/annotation/save", saveAnnotation,
-                 BODY_DTO(Object<data::AnnotationDto>, req), AUTH_HEADER, PATH(Int32, dataset_id)) {
+                 BODY_DTO(Object<data::annotation::AnnotationDto>, req), AUTH_HEADER, PATH(Int32, dataset_id)) {
             AUTH
             if (req->id == nullptr)
                 REQUEST_PARAM_CHECK(req->img_id)
@@ -402,7 +402,7 @@ namespace ender_label::controller {
                                   Status::CODE_404, "Requested annotation class not found.")
             }
             std::shared_ptr<dataset::annotation::Annotation> anno = nullptr;
-            const auto resp = SimpleDataResponseDto<Object<data::AnnotationDto> >::createShared();
+            const auto resp = SimpleDataResponseDto<Object<data::annotation::AnnotationDto> >::createShared();
 
             if (req->id == nullptr) {
                 anno = dataset::annotation::Annotation::createShared<dataset::annotation::Annotation>(req);
@@ -425,7 +425,7 @@ namespace ender_label::controller {
 
         ENDPOINT_INFO(saveAnnotation) {
             info->description = "保存标注，如果不存在则创建，如果存在则覆盖。\n" +
-                                util::swaggerRequiredFields<data::AnnotationDto>() + "\n" +
+                                util::swaggerRequiredFields<data::annotation::AnnotationDto>() + "\n" +
                                 "如果填写id字段将覆盖源有标注，如果不填写id字段则创建新标注。\n"
                                 "如果是覆盖原有的标注，只填写id(必填), task_type(必填), raw_json(选填), anno_cls_ids(选填)这4个字段。";
         }

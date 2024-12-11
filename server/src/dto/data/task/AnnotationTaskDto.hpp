@@ -4,14 +4,17 @@
 #include <oatpp/codegen/dto/base_define.hpp>
 #include <oatpp/codegen/dto/base_define.hpp>
 #include <oatpp/codegen/dto/base_define.hpp>
+#include <oatpp/codegen/dto/base_define.hpp>
+#include <oatpp/codegen/dto/base_define.hpp>
+#include <oatpp/codegen/dto/base_define.hpp>
 
 #include "oatpp/core/macro/codegen.hpp"
 #include "oatpp/core/Types.hpp"
 #include OATPP_CODEGEN_BEGIN(DTO)
 
-namespace ender_label::dto::data::annotation {
+namespace ender_label::dto::data::task {
     ENUM(AnnoTaskType, v_int32,
-         VALUE(designated_id, 0),
+         VALUE(designated_image, 0),
          VALUE(quantity, 1))
 
     class AnnotationTaskDto : public oatpp::DTO {
@@ -48,11 +51,39 @@ namespace ender_label::dto::data::annotation {
             info->description = "一个0-1之间的浮点数，代表任务进度，换算成百分比使用。";
         }
 
-        DTO_FIELD(Enum<AnnoTaskType>, anno_task_type);
+        DTO_FIELD(Enum<AnnoTaskType>::AsString, anno_task_type);
 
         DTO_FIELD_INFO(anno_task_type) {
             info->description = "标注任务类型，代表任务是以何种方式计量完成";
         }
+    };
+
+    class AnnotationTaskConfigDto : public oatpp::DTO {
+        DTO_INIT(AnnotationTaskConfigDto, DTO)
+
+        DTO_FIELD(Boolean, match_read);
+
+        DTO_FIELD(Boolean, match_create);
+
+        DTO_FIELD(Boolean, match_delete);
+
+        DTO_FIELD(Boolean, match_update);
+    };
+
+    ENUM(AnnoLogType, v_int32, VALUE(READ, 0), VALUE(CREATE, 1), VALUE(DELETE, 2), VALUE(UPDATE, 3))
+
+    class AnnotationLogDto : public oatpp::DTO {
+        DTO_INIT(AnnotationLogDto, DTO)
+
+        DTO_FIELD(Int64, time);
+
+        DTO_FIELD(Int64, anno_id);
+
+        DTO_FIELD(Int64, img_id);
+
+        DTO_FIELD(Int32, user_id);
+
+        DTO_FIELD(Enum<AnnoLogType>::AsString, log_type);
     };
 }
 

@@ -16,7 +16,7 @@
 
 ENUM(TaskType, v_int32, VALUE(segment, 0), VALUE(detect, 1), VALUE(pose, 2))
 
-namespace ender_label::dto::data {
+namespace ender_label::dto::data::annotation {
     class AnnotationDto : public oatpp::DTO {
         DTO_INIT(AnnotationDto, DTO)
         DTO_FIELD(Int64, id);

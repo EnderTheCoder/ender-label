@@ -62,7 +62,7 @@ namespace ender_label::service::dataset {
                     }
 
                     auto source = String::loadFromFile(anno_p.c_str());
-                    const auto anno_dto = data::AnnotationDto::createShared();
+                    const auto anno_dto = AnnotationDto::createShared();
                     anno_dto->anno_cls_ids = this->getDto()->class_ids;
                     anno_dto->img_id = img_id;
                     anno_dto->task_type = task_type;

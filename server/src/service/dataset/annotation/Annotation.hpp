@@ -8,7 +8,7 @@
 #include <utility>
 
 #include "service/ServiceBean.hpp"
-#include "dto/data/AnnotationDto.hpp"
+#include "dto/data/annotation/AnnotationDto.hpp"
 #include "dto/data/annotation/SegmentationDto.hpp"
 #include "dto/data/annotation/PoseDto.hpp"
 #include "dto/data/annotation/ObjectDetectionDto.hpp"
@@ -17,7 +17,7 @@
 namespace ender_label::service::dataset::annotation {
     constexpr char table_name[] = "ender_label_img_dataset_annotation";
 
-    class Annotation : public ServiceBean<table_name, data::AnnotationDto, Int64> {
+    class Annotation : public ServiceBean<table_name, AnnotationDto, Int64> {
     public:
         virtual std::string toYolo() = 0;
 
