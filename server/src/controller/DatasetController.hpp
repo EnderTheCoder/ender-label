@@ -303,6 +303,26 @@ namespace ender_label::controller {
                 if (req->task_type == TaskType::detect) {
                     const auto detect_dto = mapper->readFromString<Object<data::annotation::ObjectDetectionDto> >(
                         req->raw_json);
+                    for (const auto &bbox: *detect_dto->bboxes) {
+                        OATPP_ASSERT_HTTP(bbox->cls_id != nullptr, Status::CODE_400,
+                                          "Bbox cls_id field must not be null.")
+                        OATPP_ASSERT_HTTP(
+                            std::ranges::any_of(req->anno_cls_ids->begin(), req->anno_cls_ids->end(),
+                                [&bbox](auto& x) {
+                                return x != nullptr and x == bbox->cls_id;
+                                }), Status::CODE_400,
+                            "Annotation class id used in bboxes must be included in json->anno_cls_ids field too.")
+                        OATPP_ASSERT_HTTP(bbox->normalized_xyxy != nullptr, Status::CODE_400,
+                                          "Bbox normalized_xyxy field must not be null.")
+                        OATPP_ASSERT_HTTP(bbox->normalized_xyxy->size() == 4, Status::CODE_400,
+                                          "Bbox normalized_xyxy must contains 4 points.")
+                        OATPP_ASSERT_HTTP(
+                            std::ranges::none_of(bbox->normalized_xyxy->begin(), bbox->normalized_xyxy->end(),
+                                [](auto& x) {
+                                return x>1 or x<0;
+                                }), Status::CODE_400,
+                            "Bbox normalized_xyxy val must be in range [0, 1].")
+                    }
                 } else if (req->task_type == TaskType::segment) {
                     const auto segment_dto = mapper->readFromString<Object<data::annotation::SegmentationDto> >(
                         req->raw_json);
@@ -322,7 +342,8 @@ namespace ender_label::controller {
                         OATPP_ASSERT_HTTP(
                             std::ranges::none_of(polygon->normalized_points->begin(), polygon->normalized_points->end(),
                                 [](auto& x) {
-                                return x == nullptr or x->size() !=2 or x[0] < 0 or x[0] > 1 or x[1] < 0 or x[1] >1;
+                                return x == nullptr or x->size() !=2 or x[0]==nullptr or x[1]==nullptr or x[0] < 0 or x[
+                                    0] > 1 or x[1] < 0 or x[1] >1;
                                 }), Status::CODE_400, "Exceed normalized points axis range limit [0, 1]")
                     }
                 } else if (req->task_type == TaskType::pose) {
