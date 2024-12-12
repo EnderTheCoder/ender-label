@@ -36,7 +36,7 @@ namespace ender_label::service::dataset {
             using namespace std::filesystem;
             const path root(s_path);
             auto img_paths = std::set<path>{};
-            auto anno_paths = std::set<path>{};
+            auto stem_to_anno_paths = std::unordered_map<path, path>{};
             std::function<void(path)> func_list_dir = [&](const auto &_path) {
                 for (directory_iterator it(_path); it != directory_iterator(); ++it) {
                     if (is_regular_file(it->path())) {
@@ -44,7 +44,7 @@ namespace ender_label::service::dataset {
                             img_paths.emplace(it->path());
                         }
                         if (supported_anno_ext.contains(it->path().extension().string())) {
-                            anno_paths.emplace(it->path());
+                            stem_to_anno_paths.emplace(it->path().stem(), it->path());
                         }
                     } else if (is_directory(it->path())) {
                         func_list_dir(it->path());
@@ -88,9 +88,9 @@ namespace ender_label::service::dataset {
                     copy_file(img_path, dst);
                     auto img = Image::createFromFile(dst);
                     for (const auto &ext: supported_anno_ext) {
-                        if (const auto full_p = path(img_path.stem().string() + ext); anno_paths.contains(full_p)) {
+                        if (const auto stem = img_path.stem(); stem_to_anno_paths.contains(stem)) {
                             auto img_id = img->getId();
-                            func_import_anno(img_path, full_p, img_id);
+                            func_import_anno(img_path, stem_to_anno_paths.at(stem), img_id);
                             break;
                         }
                     }
@@ -166,11 +166,12 @@ namespace ender_label::service::dataset {
         }
 
         auto getClasses() {
-            const auto vec = Vector<Object<annotation::AnnotationClassDto>>::createShared();
+            const auto vec = Vector<Object<annotation::AnnotationClassDto> >::createShared();
             for (const auto &anno_cls_id: *this->getDto()->class_ids) {
                 const auto anno_cls = annotation::AnnotationClass::getById(anno_cls_id);
                 if (anno_cls == nullptr) {
-                    throw std::runtime_error("AnnotationClass[id:" + std::to_string(anno_cls_id) + "] not found, broken data.");
+                    throw std::runtime_error(
+                        "AnnotationClass[id:" + std::to_string(anno_cls_id) + "] not found, broken data.");
                 }
                 vec->push_back(anno_cls->getDto());
             }
