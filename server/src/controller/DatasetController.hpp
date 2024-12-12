@@ -430,6 +430,22 @@ namespace ender_label::controller {
                                 "如果是覆盖原有的标注，只填写id(必填), task_type(必填), raw_json(选填), anno_cls_ids(选填)这4个字段。";
         }
 
+        ENDPOINT("GET", "/dateset/annotation/{annotation_id}/delete", deleteAnno, AUTH_HEADER,
+                 PATH(Int64,annotation_id)) {
+            AUTH
+            const auto anno = dataset::annotation::Annotation::getById(annotation_id);
+            OATPP_ASSERT_HTTP(anno != nullptr, Status::CODE_404,
+                              "Requested annotation[id:"+std::to_string(*annotation_id)+"] not found.")
+            anno->del();
+            const auto resp = BaseResponseDto::createShared();
+            return createDtoResponse(Status::CODE_200, resp);
+        }
+
+        ENDPOINT_INFO(deleteAnno) {
+            info->name = "删除标注";
+            info->description = "使用id删除指定的标注";
+        }
+
         ENDPOINT("GET", "/dataset/image/{image_id}/thumbnail", getThumbnail, PATH(Int64, image_id)) {
             const auto img = dataset::Image::getById<dataset::Image>(image_id);
             OATPP_ASSERT_HTTP(img != nullptr, Status::CODE_404, "Requested image does not exist.")
