@@ -484,6 +484,19 @@ namespace ender_label::controller {
             info->description = "获取指定图片的原始图，格式为png，不需要传入token。";
             info->addResponse<String>(Status::CODE_200, "image/png");
         }
+
+        ENDPOINT("GET", "/dataset/image/{image_id}/info", getImageInfo, PATH(Int64, image_id)) {
+            const auto img = dataset::Image::getById<dataset::Image>(image_id);
+            OATPP_ASSERT_HTTP(img != nullptr, Status::CODE_404, "Requested image does not exist.")
+            const auto resp = SimpleDataResponseDto<Object<data::ImageDto> >::createShared();
+            resp->data = img->getDto();
+            return createDtoResponse(Status::CODE_200, resp);
+        }
+
+        ENDPOINT_INFO(getImageInfo) {
+            info->description = "根据ID获取单张图片信息";
+            info->addResponse<Object<data::ImageDto> >(Status::CODE_200, "application/json");
+        }
     };
 }
 
