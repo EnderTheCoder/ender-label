@@ -9,14 +9,11 @@
 #include "dto/request/ImportDatasetRequestDto.hpp"
 
 #include <dto/response/SimpleDataResponseDto.hpp>
-#include "dto/response/PagedResponseDto.hpp"
 #include "service/dataset/ImageDataset.hpp"
 #include "service/dataset/annotation/SegmentationAnnotation.hpp"
-#include "service/dataset/annotation/AnnotationMerger.hpp"
 #include "util/AuthUtil.hpp"
 #include "util/SwaggerUtil.hpp"
 #include "util/ControllerUtil.hpp"
-#include <ranges>
 #include <service/processor/BackgroundImageProcessor.hpp>
 #include "service/dataset/task/AnnotationTask.hpp"
 #include OATPP_CODEGEN_BEGIN(ApiController)
