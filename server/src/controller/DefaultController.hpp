@@ -21,7 +21,7 @@ namespace ender_label::controller {
             {".jpg", "image/jpg"},
             {".png", "image/png"},
             {".css", "text/css"},
-            {".js", "application/js"}
+            {".js", "application/javascript"}
         };
 
         explicit DefaultController(OATPP_COMPONENT(std::shared_ptr<ObjectMapper>, objectMapper))
