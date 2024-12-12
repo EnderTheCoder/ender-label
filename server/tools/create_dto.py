@@ -1,3 +1,4 @@
+import argparse
 import os.path
 from util import get_project_name, get_template, camel_to_snake
 
@@ -16,7 +17,11 @@ def create_dto(dto_name: str, dto_path: str):
         f.write(dto_content)
 
 
-if __name__ == '__main__':
-    name = input('input dto name:')
-    path = input('input target path:')
-    create_dto(name, path)
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(
+        prog='Dto Creator',
+        description='Create a new dto class hpp file in project.')
+    parser.add_argument('-n', '--name', type=str)
+    parser.add_argument('-p', '--path', type=str)
+    args = parser.parse_args()
+    create_dto(args.name, args.path)
