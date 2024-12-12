@@ -148,10 +148,10 @@ namespace ender_label::service::dataset::task {
 
     class QuantityTask final : public AnnotationTask<QuantityTaskDto> {
     public:
-
-        auto getImages() -> Vector<Object<data::ImageDto>> override {
+        auto getImages() -> Vector<Object<data::ImageDto> > override {
             return {};
         }
+
         void increase() {
             const auto task_data_dto = this->readTaskDto();
             task_data_dto->amount = task_data_dto->amount + 1;
@@ -183,8 +183,7 @@ namespace ender_label::service::dataset::task {
             const auto img_dtos = Vector<Object<data::ImageDto> >::createShared();
             if (task_data_dto->target_img_ids == nullptr) return {};
             for (const auto img_id: *task_data_dto->target_img_ids) {
-                const auto img = Image::getById(img_id);
-                if (img != nullptr) {
+                if (const auto img = Image::getById(img_id); img != nullptr) {
                     img_dtos->push_back(img->getDto());
                 }
             }
