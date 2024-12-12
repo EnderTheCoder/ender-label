@@ -148,6 +148,10 @@ namespace ender_label::service::dataset::task {
 
     class QuantityTask final : public AnnotationTask<QuantityTaskDto> {
     public:
+
+        auto getImages() -> Vector<Object<data::ImageDto>> override {
+            return {};
+        }
         void increase() {
             const auto task_data_dto = this->readTaskDto();
             task_data_dto->amount = task_data_dto->amount + 1;
