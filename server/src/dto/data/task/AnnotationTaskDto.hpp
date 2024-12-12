@@ -7,6 +7,9 @@
 #include <oatpp/codegen/dto/base_define.hpp>
 #include <oatpp/codegen/dto/base_define.hpp>
 #include <oatpp/codegen/dto/base_define.hpp>
+#include <oatpp/codegen/dto/base_define.hpp>
+#include <oatpp/codegen/dto/base_define.hpp>
+#include <oatpp/codegen/dto/base_define.hpp>
 
 #include "oatpp/core/macro/codegen.hpp"
 #include "oatpp/core/Types.hpp"
@@ -20,6 +23,16 @@ namespace ender_label::dto::data::task {
     class AnnotationTaskDto : public oatpp::DTO {
         DTO_INIT(AnnotationTaskDto, DTO)
         DTO_FIELD(Int32, id);
+
+        DTO_FIELD_INFO(id) {
+            info->description = "TaskId任务ID";
+        }
+
+        DTO_FIELD(String, name);
+
+        DTO_FIELD_INFO(name) {
+            info->description = "任务名称";
+        }
 
         DTO_FIELD(UnorderedSet<Int32>, user_ids);
 

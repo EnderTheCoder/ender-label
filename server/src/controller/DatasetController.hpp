@@ -543,8 +543,43 @@ namespace ender_label::controller {
 
         ENDPOINT_INFO(getAllImgInfoInTask) {
             info->name = "获取任务图片";
-            info->description = "获取指定任务下，所有的需要标注的图片。";
+            info->description = "获取指定任务下，所有的需要标注的图片的图片附属信息。";
             info->addResponse<Object<ArrayResponseDto<Object<data::ImageDto> > > >(
+                Status::CODE_200, "application/json");
+        }
+
+        ENDPOINT("GET", "/dataset/task/{task_id}/image/id/all", getAllImgIdInTask, AUTH_HEADER,
+                 PATH(Int32, task_id)) {
+            AUTH
+            using namespace dataset::task;
+            const auto task = BaseTask::getById<BaseTask>(task_id);
+            Vector<Object<data::ImageDto> > img_dtos = nullptr;
+            const auto resp = ArrayResponseDto<Int64>::createShared();
+            switch (*task->getDto()->anno_task_type) {
+                case AnnoTaskType::designated_image: {
+                    const auto d_task = DesignatedImageTask::createShared<DesignatedImageTask>(task->getDto());
+                    img_dtos = d_task->getImages();
+                    break;
+                }
+                case AnnoTaskType::quantity: {
+                    const auto q_task = QuantityTask::createShared<QuantityTask>(task->getDto());
+                    img_dtos = q_task->getImages();
+                    break;
+                }
+                default:
+                    break;
+            }
+            for (const auto img_dto: *img_dtos) {
+                resp->data->push_back(img_dto->id);
+            }
+            resp->size = resp->data->size();
+            return createDtoResponse(Status::CODE_200, resp);
+        }
+
+        ENDPOINT_INFO(getAllImgIdInTask) {
+            info->name = "获取任务图片id";
+            info->description = "获取指定任务下，所有的需要标注的图片的id列表。";
+            info->addResponse<Object<ArrayResponseDto<Int64> > >(
                 Status::CODE_200, "application/json");
         }
 

@@ -186,6 +186,8 @@ namespace ender_label::service::dataset::task {
             }
             return img_dtos;
         }
+
+        void onCreateAnno(const oatpp::Object<annotation::AnnotationDto> &anno_dto) override;
     };
 
     typedef AnnotationTask<AnnotationTaskDataDto> BaseTask;

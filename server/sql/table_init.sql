@@ -78,6 +78,7 @@ create table if not exists ender_label_annotation_task
 create table if not exists ender_label_annotation_log
 (
     id       bigserial primary key,
+    name     text,
     time     int8,
     task_id  int4,
     anno_id  int8,
