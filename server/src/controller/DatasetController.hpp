@@ -553,9 +553,11 @@ namespace ender_label::controller {
             AUTH
             using namespace dataset::task;
             const auto task = BaseTask::getById<BaseTask>(task_id);
+            OATPP_ASSERT_HTTP(task != nullptr, Status::CODE_404, "Requested task not foumd.")
             Vector<Object<data::ImageDto> > img_dtos = nullptr;
             const auto resp = ArrayResponseDto<Int64>::createShared();
-            switch (*task->getDto()->anno_task_type) {
+            const auto task_dto = task->getDto();
+            switch (*task_dto->anno_task_type) {
                 case AnnoTaskType::designated_image: {
                     const auto d_task = DesignatedImageTask::createShared<DesignatedImageTask>(task->getDto());
                     img_dtos = d_task->getImages();
@@ -567,10 +569,14 @@ namespace ender_label::controller {
                     break;
                 }
                 default:
+                    throw web::protocol::http::HttpError(Status::CODE_500, "Error cant get task type.");
                     break;
             }
-            for (const auto img_dto: *img_dtos) {
-                resp->data->push_back(img_dto->id);
+            resp->data = {};
+            if (img_dtos != nullptr) {
+                for (const auto img_dto: *img_dtos) {
+                    resp->data->push_back(img_dto->id);
+                }
             }
             resp->size = resp->data->size();
             return createDtoResponse(Status::CODE_200, resp);
