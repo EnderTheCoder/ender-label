@@ -49,6 +49,10 @@ namespace ender_label::service {
             return std::static_pointer_cast<T>(std::make_shared<ServiceBean>(dto));
         }
 
+        static auto getTableName() -> std::string {
+            return TABLE_NAME;
+        }
+
         static auto getFieldStr() {
             std::ostringstream fields;
             for (const auto &item: DTO_TYPE::Wrapper::getPropertiesMap()) {
@@ -234,7 +238,8 @@ namespace ender_label::service {
 
         template<int max_page_size = 100>
         static auto
-        paginate(const std::shared_ptr<oatpp::orm::QueryResult> &res, const oatpp::Object<PaginationRequestDto> &request,
+        paginate(const std::shared_ptr<oatpp::orm::QueryResult> &res,
+                 const oatpp::Object<PaginationRequestDto> &request,
                  const Boolean &wrapped = false) {
             using namespace web::protocol::http;
             checkPage(request->page_size, request->page_num, max_page_size);

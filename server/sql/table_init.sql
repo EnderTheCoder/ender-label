@@ -63,3 +63,25 @@ create table if not exists ender_label_annotation_class
     key    text,
     "desc" text
 );
+
+create table if not exists ender_label_annotation_task
+(
+    id             serial primary key,
+    user_ids       int4[],
+    dataset_id     int4,
+    raw_json       text,
+    state          bool,
+    progress       float4,
+    anno_task_type text
+);
+
+create table if not exists ender_label_annotation_log
+(
+    id       bigserial primary key,
+    time     int8,
+    task_id  int4,
+    anno_id  int8,
+    img_id   int8,
+    user_id  int4,
+    log_type text
+)

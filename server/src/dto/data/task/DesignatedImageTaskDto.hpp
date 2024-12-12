@@ -1,14 +1,18 @@
 #ifndef DESIGNATED_IMAGE_TASK_DTO_HPP
 #define DESIGNATED_IMAGE_TASK_DTO_HPP
-#include "oatpp/core/macro/codegen.hpp"
-#include "oatpp/core/Types.hpp"
+#include <oatpp/codegen/dto/base_define.hpp>
+#include <oatpp/codegen/dto/base_define.hpp>
+
+#include "AnnotationTaskDto.hpp"
 #include OATPP_CODEGEN_BEGIN(DTO)
 
 namespace ender_label::dto::data::task {
-    class DesignatedImageTaskDto : public oatpp::DTO {
-        DTO_INIT(DesignatedImageTaskDto, DTO)
-        DTO_FIELD(Object<AnnotationTaskConfigDto>, config);
-        DTO_FIELD(List<Object<AnnotationLogDto>>, logs);
+    class DesignatedImageTaskDto final : public AnnotationTaskDataDto {
+        DTO_INIT(DesignatedImageTaskDto, AnnotationTaskDataDto)
+
+        DTO_FIELD(UnorderedSet<Int64>, img_ids);
+
+        DTO_FIELD(UnorderedSet<Int64>, target_img_ids);
     };
 }
 

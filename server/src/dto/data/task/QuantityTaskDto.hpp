@@ -2,17 +2,16 @@
 #define QUANTITY_TASK_DTO_HPP
 #include <oatpp/codegen/dto/base_define.hpp>
 
-#include "oatpp/core/macro/codegen.hpp"
-#include "oatpp/core/Types.hpp"
+#include "AnnotationTaskDto.hpp"
 #include OATPP_CODEGEN_BEGIN(DTO)
 
 namespace ender_label::dto::data::task {
-    class QuantityTaskDto : public oatpp::DTO {
-        DTO_INIT(QuantityTaskDto, DTO)
+    class QuantityTaskDto final : public AnnotationTaskDataDto {
+        DTO_INIT(QuantityTaskDto, AnnotationTaskDataDto)
 
-        DTO_FIELD(Object<AnnotationTaskConfigDto>, config);
+        DTO_FIELD(Int32, amount);
 
-        DTO_FIELD(List<Object<AnnotationLogDto>>, logs);
+        DTO_FIELD(Int32, target_amount);
     };
 }
 

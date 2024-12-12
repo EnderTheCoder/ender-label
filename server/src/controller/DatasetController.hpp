@@ -485,7 +485,8 @@ namespace ender_label::controller {
             info->addResponse<String>(Status::CODE_200, "image/png");
         }
 
-        ENDPOINT("GET", "/dataset/image/{image_id}/info", getImageInfo, PATH(Int64, image_id)) {
+        ENDPOINT("GET", "/dataset/image/{image_id}/info", getImageInfo, PATH(Int64, image_id), AUTH_HEADER) {
+            AUTH
             const auto img = dataset::Image::getById<dataset::Image>(image_id);
             OATPP_ASSERT_HTTP(img != nullptr, Status::CODE_404, "Requested image does not exist.")
             const auto resp = SimpleDataResponseDto<Object<data::ImageDto> >::createShared();
@@ -497,6 +498,57 @@ namespace ender_label::controller {
             info->description = "根据ID获取单张图片信息";
             info->addResponse<Object<data::ImageDto> >(Status::CODE_200, "application/json");
         }
+
+        ENDPOINT("GET", "/dataset/{dataset_id}/task/all", getAllAnnoTask, PATH(Int32, dataset_id), AUTH_HEADER) {
+            AUTH
+            using namespace dataset::task;
+            const auto dataset = dataset::ImageDataset::getById<dataset::ImageDataset>(dataset_id);
+            OATPP_ASSERT_HTTP(dataset != nullptr, Status::CODE_404,
+                              "Requested dataset[id:"+std::to_string(*dataset_id)+"] not found.")
+            const auto resp = ArrayResponseDto<Object<AnnotationTaskDto> >::createShared();
+            resp->data = BaseTask::toDtoList(BaseTask::getUserTasksInDataset(USER->getId(), dataset_id));
+            resp->size = resp->data->size();
+            return createDtoResponse(Status::CODE_200, resp);
+        }
+
+        ENDPOINT_INFO(getAllAnnoTask) {
+            info->description = "获取指定数据集下，和用户相关的所有标注任务。";
+            info->addResponse<Object<ArrayResponseDto<Object<dataset::task::AnnotationTaskDto> > > >(
+                Status::CODE_200, "application/json");
+        }
+
+        ENDPOINT("GET", "/dataset/task/{task_id}/image/info/all", getAllImgInfoInTask, AUTH_HEADER,
+                 PATH(Int32, task_id)) {
+            AUTH
+            using namespace dataset::task;
+            const auto task = BaseTask::getById<BaseTask>(task_id);
+            const auto resp = ArrayResponseDto<Object<data::ImageDto> >::createShared();
+            switch (*task->getDto()->anno_task_type) {
+                case AnnoTaskType::designated_image: {
+                    const auto d_task = DesignatedImageTask::createShared<DesignatedImageTask>(task->getDto());
+                    resp->data = d_task->getImages();
+                    break;
+                }
+                case AnnoTaskType::quantity: {
+                    const auto q_task = QuantityTask::createShared<QuantityTask>(task->getDto());
+                    resp->data = q_task->getImages();
+                    break;
+                }
+                default:
+                    break;
+            }
+            resp->size = resp->data->size();
+            return createDtoResponse(Status::CODE_200, resp);
+        }
+
+        ENDPOINT_INFO(getAllImgInfoInTask) {
+            info->name = "获取任务图片";
+            info->description = "获取指定任务下，所有的需要标注的图片。";
+            info->addResponse<Object<ArrayResponseDto<Object<data::ImageDto> > > >(
+                Status::CODE_200, "application/json");
+        }
+
+        // ENDPOINT("GET", "/dataset/{dataset_id}/task/all", getAllAnnoTask, PATH(Int32, dataset_id), AUTH_HEADER)
     };
 }
 
