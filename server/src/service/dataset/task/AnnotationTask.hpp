@@ -223,9 +223,21 @@ namespace ender_label::service::dataset::task {
         }
 
         void onUpdateAnno(const oatpp::Object<annotation::AnnotationDto> &anno_dto) override {
+            const auto task_data_dto = this->readTaskDto();
+            if (not task_data_dto->img_ids->contains(anno_dto->img_id) and task_data_dto->target_img_ids->contains(
+                    anno_dto->img_id)) {
+                task_data_dto->img_ids->emplace(anno_dto->img_id);
+                this->writeTaskDto(task_data_dto);
+                auto task_dto = AnnotationTaskDto::createShared();
+                task_dto->progress = static_cast<float>(task_data_dto->img_ids->size()) / static_cast<float>(
+                                         task_data_dto->target_img_ids->size());
+                task_dto->state = task_data_dto->img_ids->size() == task_data_dto->target_img_ids->size();
+                this->overwrite(task_dto);
+            }
         }
 
         void onCreateAnno(const oatpp::Object<annotation::AnnotationDto> &anno_dto) override {
+            this->onUpdateAnno(anno_dto);
         }
 
         void onDeleteAnno(const oatpp::Object<annotation::AnnotationDto> &anno_dto) override {
