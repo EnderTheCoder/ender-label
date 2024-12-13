@@ -20,6 +20,9 @@ namespace ender_label::service::dataset::task {
     template<typename TASK_DTO_TYPE>
     class AnnotationTask : public ServiceBean<table_name_annotation_task, AnnotationTaskDto> {
     public:
+        explicit AnnotationTask(const auto &_dto) : ServiceBean(_dto) {
+        }
+
         auto readTaskDto() {
             const OATPP_COMPONENT(std::shared_ptr<oatpp::data::mapping::ObjectMapper>, mapper);
             return mapper->readFromString<Object<TASK_DTO_TYPE> >(this->getDto()->raw_json);
@@ -33,7 +36,7 @@ namespace ender_label::service::dataset::task {
         }
 
         auto makeLog(const auto &img_id, const auto &anno_id, const auto &user_id, const auto &log_type) {
-            const auto log_dto = AnnotationLogDto::createShared();
+            auto log_dto = AnnotationLogDto::createShared();
             log_dto->img_id = img_id;
             log_dto->anno_id = anno_id;
             log_dto->user_id = user_id;
@@ -78,17 +81,13 @@ namespace ender_label::service::dataset::task {
         }
 
         //create read update delete
-        virtual void onReadAnno(const oatpp::Object<annotation::AnnotationDto> &anno_dto) {
-        }
+        virtual void onReadAnno(const oatpp::Object<annotation::AnnotationDto> &anno_dto) = 0;
 
-        virtual void onUpdateAnno(const oatpp::Object<annotation::AnnotationDto> &anno_dto) {
-        }
+        virtual void onUpdateAnno(const oatpp::Object<annotation::AnnotationDto> &anno_dto) = 0;
 
-        virtual void onCreateAnno(const oatpp::Object<annotation::AnnotationDto> &anno_dto) {
-        }
+        virtual void onCreateAnno(const oatpp::Object<annotation::AnnotationDto> &anno_dto) = 0;
 
-        virtual void onDeleteAnno(const oatpp::Object<annotation::AnnotationDto> &anno_dto) {
-        }
+        virtual void onDeleteAnno(const oatpp::Object<annotation::AnnotationDto> &anno_dto) = 0;
 
         virtual bool relevantWithUser(const Int32 &uid) {
             return this->getDto()->user_ids == nullptr or this->getDto()->user_ids->contains(uid);
@@ -127,7 +126,7 @@ namespace ender_label::service::dataset::task {
             return AnnotationLog::toDtoList(AnnotationLog::getList(query));
         }
 
-        auto getLogsWithImgAndType(const auto img_id, const auto &type) {
+        auto getLogsWithImgAndType(const auto &img_id, const auto &type) {
             const OATPP_COMPONENT(std::shared_ptr<PgDb>, db);
             const auto query = db->executeQuery(
                 "SELECT * FROM " + AnnotationLog::getTableName() +
@@ -139,6 +138,12 @@ namespace ender_label::service::dataset::task {
             return AnnotationLog::toDtoList(AnnotationLog::getList(query));
         }
 
+        void progress(const float percentage) {
+            const auto dto = AnnotationTaskDto::createShared();
+            dto->progress = percentage;
+            this->overwrite(dto);
+        }
+
         void finish() {
             const auto dto = AnnotationTaskDto::createShared();
             dto->state = true;
@@ -148,6 +153,13 @@ namespace ender_label::service::dataset::task {
 
     class QuantityTask final : public AnnotationTask<QuantityTaskDto> {
     public:
+        explicit QuantityTask(const auto &_dto): AnnotationTask(_dto) {
+        }
+
+        static auto createSharedR(const Object<AnnotationTaskDto> &dto) {
+            return std::make_shared<QuantityTask>(dto);
+        }
+
         auto getImages() -> Vector<Object<data::ImageDto> > override {
             return {};
         }
@@ -155,12 +167,16 @@ namespace ender_label::service::dataset::task {
         void increase() {
             const auto task_data_dto = this->readTaskDto();
             task_data_dto->amount = task_data_dto->amount + 1;
+            this->progress(
+                static_cast<float>(task_data_dto->amount) / static_cast<float>(task_data_dto->target_amount));
             this->writeTaskDto(task_data_dto);
         }
 
         void decrease() {
             const auto task_data_dto = this->readTaskDto();
             task_data_dto->amount = task_data_dto->amount - 1;
+            this->progress(
+                static_cast<float>(task_data_dto->amount) / static_cast<float>(task_data_dto->target_amount));
             this->writeTaskDto(task_data_dto);
         }
 
@@ -173,11 +189,24 @@ namespace ender_label::service::dataset::task {
                 this->getLogsWithImgAndType(anno_dto->img_id, AnnoLogType::UPDATE)->empty())
                 increase();
         }
+
+        void onReadAnno(const oatpp::Object<annotation::AnnotationDto> &anno_dto) override {
+        }
+
+        void onDeleteAnno(const oatpp::Object<annotation::AnnotationDto> &anno_dto) override {
+        }
     };
 
 
     class DesignatedImageTask final : public AnnotationTask<DesignatedImageTaskDto> {
     public:
+        explicit DesignatedImageTask(const auto &_dto): AnnotationTask(_dto) {
+        }
+
+        static auto createSharedR(const Object<AnnotationTaskDto> &dto) {
+            return std::make_shared<DesignatedImageTask>(dto);
+        }
+
         auto getImages() -> Vector<Object<data::ImageDto> > override {
             const auto task_data_dto = this->readTaskDto();
             auto img_dtos = Vector<Object<data::ImageDto> >::createShared();
@@ -190,7 +219,17 @@ namespace ender_label::service::dataset::task {
             return img_dtos;
         }
 
-        void onCreateAnno(const oatpp::Object<annotation::AnnotationDto> &anno_dto) override;
+        void onReadAnno(const oatpp::Object<annotation::AnnotationDto> &anno_dto) override {
+        }
+
+        void onUpdateAnno(const oatpp::Object<annotation::AnnotationDto> &anno_dto) override {
+        }
+
+        void onCreateAnno(const oatpp::Object<annotation::AnnotationDto> &anno_dto) override {
+        }
+
+        void onDeleteAnno(const oatpp::Object<annotation::AnnotationDto> &anno_dto) override {
+        }
     };
 
     typedef AnnotationTask<AnnotationTaskDataDto> BaseTask;
@@ -202,12 +241,12 @@ namespace ender_label::service::dataset::task {
     OATPP_ASSERT_HTTP(_task != nullptr, oatpp::web::protocol::http::Status::CODE_404, "Requested task not found.");\
     switch (*_task->getDto()->anno_task_type) { \
     case ender_label::dto::data::task::AnnoTaskType::designated_image: {\
-        const auto task = ender_label::service::dataset::task::DesignatedImageTask::createShared<ender_label::service::dataset::task::DesignatedImageTask>(_task->getDto());\
+        const auto task = ender_label::service::dataset::task::DesignatedImageTask::createSharedR(_task->getDto());\
 task->onAnnoChange(ANNO, TYPE);\
 break;\
     }\
     case ender_label::dto::data::task::AnnoTaskType::quantity: {\
-        const auto task = ender_label::service::dataset::task::QuantityTask::createShared<ender_label::service::dataset::task::QuantityTask>(_task->getDto());\
+        const auto task = ender_label::service::dataset::task::QuantityTask::createSharedR(_task->getDto());\
 task->onAnnoChange(ANNO, TYPE);\
 break;\
     }\
