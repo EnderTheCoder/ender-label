@@ -74,19 +74,19 @@ namespace ender_label::dto::data::task {
     class AnnotationTaskConfigDto : public oatpp::DTO {
         DTO_INIT(AnnotationTaskConfigDto, DTO)
 
-        DTO_FIELD(Boolean, match_read);
+        DTO_FIELD(Boolean, match_read) = true;
 
-        DTO_FIELD(Boolean, match_create);
+        DTO_FIELD(Boolean, match_create) = true;
 
-        DTO_FIELD(Boolean, match_delete);
+        DTO_FIELD(Boolean, match_delete) = true;
 
-        DTO_FIELD(Boolean, match_update);
+        DTO_FIELD(Boolean, match_update) = true;
     };
 
 
     class AnnotationTaskDataDto : public oatpp::DTO {
         DTO_INIT(AnnotationTaskDataDto, DTO)
-        DTO_FIELD(Object<AnnotationTaskConfigDto>, config);
+        DTO_FIELD(Object<AnnotationTaskConfigDto>, config) = {};
     };
 }
 

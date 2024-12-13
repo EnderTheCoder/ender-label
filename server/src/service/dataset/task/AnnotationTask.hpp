@@ -180,9 +180,9 @@ namespace ender_label::service::dataset::task {
     public:
         auto getImages() -> Vector<Object<data::ImageDto> > override {
             const auto task_data_dto = this->readTaskDto();
-            const auto img_dtos = Vector<Object<data::ImageDto> >::createShared();
+            auto img_dtos = Vector<Object<data::ImageDto> >::createShared();
             if (task_data_dto->target_img_ids == nullptr) return {};
-            for (const auto img_id: *task_data_dto->target_img_ids) {
+            for (const auto &img_id: *task_data_dto->target_img_ids) {
                 if (const auto img = Image::getById(img_id); img != nullptr) {
                     img_dtos->push_back(img->getDto());
                 }
@@ -196,5 +196,23 @@ namespace ender_label::service::dataset::task {
     typedef AnnotationTask<AnnotationTaskDataDto> BaseTask;
 }
 
-
+#define TRIGGER_TASK_LISTENER(TASK_ID, ANNO, TYPE) \
+    if (TASK_ID.getPtr() != nullptr) {\
+    const auto _task = ender_label::service::dataset::task::BaseTask::getById<ender_label::service::dataset::task::BaseTask>(TASK_ID); \
+    OATPP_ASSERT_HTTP(_task != nullptr, oatpp::web::protocol::http::Status::CODE_404, "Requested task not found.");\
+    switch (*_task->getDto()->anno_task_type) { \
+    case ender_label::dto::data::task::AnnoTaskType::designated_image: {\
+        const auto task = ender_label::service::dataset::task::DesignatedImageTask::createShared<ender_label::service::dataset::task::DesignatedImageTask>(_task->getDto());\
+task->onAnnoChange(ANNO, TYPE);\
+break;\
+    }\
+    case ender_label::dto::data::task::AnnoTaskType::quantity: {\
+        const auto task = ender_label::service::dataset::task::QuantityTask::createShared<ender_label::service::dataset::task::QuantityTask>(_task->getDto());\
+task->onAnnoChange(ANNO, TYPE);\
+break;\
+    }\
+    default:\
+        throw oatpp::web::protocol::http::HttpError(Status::CODE_500, "Error cant get task type.");\
+    break;\
+                }}
 #endif //ANNOTATIONTASK_HPP

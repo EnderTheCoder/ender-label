@@ -218,7 +218,7 @@ namespace ender_label::controller {
                 for (const auto &img_id: *dataset->getDto()->img_ids) {
                     const auto img = dataset::Image::getById(img_id);
                     if (img == nullptr) {
-                        OATPP_LOGE("DATASET", "Img with id %lld not found.", *img_id);
+                        OATPP_LOGE("DATASET", "Img with id %ld not found.", *img_id);
                     }
                     resp->data->emplace_back(img->getDto());
                 }
@@ -235,6 +235,7 @@ namespace ender_label::controller {
         }
 
         ENDPOINT("GET", "/dataset/{dataset_id}/image/{image_id}/annotation/all", listImageAnnotation,
+                 QUERY(Int32, task_id),
                  QUERY(Enum<TaskType>::AsString, task), PATH(Int32, dataset_id), PATH(Int64, image_id)) {
             const auto dataset = dataset::ImageDataset::getById(dataset_id);
             const auto image = dataset::Image::getById(image_id);
@@ -254,7 +255,10 @@ namespace ender_label::controller {
             resp->data = {};
             for (const auto anno_list = Annotation::toDtoList(Annotation::getByField("img_id", image_id));
                  const auto &anno_dto: *anno_list) {
-                if (anno_dto->task_type == task) resp->data->push_back(anno_dto);
+                if (anno_dto->task_type == task) {
+                    resp->data->push_back(anno_dto);
+                    TRIGGER_TASK_LISTENER(task_id, anno_dto, data::task::AnnoLogType::READ)
+                }
             }
             resp->size = resp->data->size();
             return createDtoResponse(Status::CODE_200, resp);
@@ -286,7 +290,8 @@ namespace ender_label::controller {
         }
 
         ENDPOINT("POST", "/dataset/{dataset_id}/annotation/save", saveAnnotation,
-                 BODY_DTO(Object<data::annotation::AnnotationDto>, req), AUTH_HEADER, PATH(Int32, dataset_id)) {
+                 BODY_DTO(Object<data::annotation::AnnotationDto>, req), AUTH_HEADER, PATH(Int32, dataset_id),
+                 QUERY(Int32, task_id)) {
             AUTH
             if (req->id == nullptr)
                 REQUEST_PARAM_CHECK(req->img_id)
@@ -406,6 +411,7 @@ namespace ender_label::controller {
                 anno->write();
                 resp->code = 100;
                 resp->message = "写入新标注成功";
+                TRIGGER_TASK_LISTENER(task_id, anno->getDto(), data::task::AnnoLogType::CREATE)
             } else {
                 anno = dataset::annotation::Annotation::getById<dataset::annotation::Annotation>(req->id);
                 OATPP_ASSERT_HTTP(anno != nullptr, Status::CODE_404,
@@ -414,8 +420,8 @@ namespace ender_label::controller {
                 anno->overwrite(req, {"raw_json", "anno_cls_ids", "task_type", "owner_id"});
                 resp->code = 200;
                 resp->message = "覆盖原有标注成功";
+                TRIGGER_TASK_LISTENER(task_id, anno->getDto(), data::task::AnnoLogType::UPDATE)
             }
-
             resp->data = anno->getDto();
             return createDtoResponse(Status::CODE_200, resp);
         }
@@ -428,11 +434,12 @@ namespace ender_label::controller {
         }
 
         ENDPOINT("GET", "/dateset/annotation/{annotation_id}/delete", deleteAnno, AUTH_HEADER,
-                 PATH(Int64,annotation_id)) {
+                 PATH(Int64,annotation_id), QUERY(Int32, task_id)) {
             AUTH
             const auto anno = dataset::annotation::Annotation::getById(annotation_id);
             OATPP_ASSERT_HTTP(anno != nullptr, Status::CODE_404,
                               "Requested annotation[id:"+std::to_string(*annotation_id)+"] not found.")
+            TRIGGER_TASK_LISTENER(task_id, anno->getDto(), data::task::AnnoLogType::UPDATE)
             anno->del();
             const auto resp = BaseResponseDto::createShared();
             return createDtoResponse(Status::CODE_200, resp);
@@ -571,7 +578,7 @@ namespace ender_label::controller {
             }
             resp->data = {};
             if (img_dtos != nullptr) {
-                for (const auto img_dto: *img_dtos) {
+                for (const auto &img_dto: *img_dtos) {
                     resp->data->push_back(img_dto->id);
                 }
             }
