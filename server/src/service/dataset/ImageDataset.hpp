@@ -56,9 +56,7 @@ namespace ender_label::service::dataset {
             auto func_import_anno = [&task_type, this](auto &img_p, auto &anno_p, auto &img_id) {
                 using namespace annotation;
                 if (task_type == TaskType::segment) {
-                    const auto img = cv::imread(img_p.c_str());
-
-                    if (img.empty()) {
+                    if (const auto img = cv::imread(img_p.c_str()); img.empty()) {
                         throw std::runtime_error("Failed to load img from " + img_p.string() + ": broken.");
                     }
 
