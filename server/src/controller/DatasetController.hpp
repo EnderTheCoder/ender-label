@@ -131,6 +131,14 @@ namespace ender_label::controller {
             OATPP_ASSERT_HTTP(dataset != nullptr, Status::CODE_404, "Dataset does not exist.")
             OATPP_ASSERT_HTTP(USER->hasPerm("DATASET_READ_["+std::to_string(dataset_id)+"]"), Status::CODE_200,
                               "Permission denied.")
+            OATPP_COMPONENT(std::shared_ptr<processor::ExportProcessor>, export_processor);
+            const auto export_path = dataset->root() / "exports" / std::filesystem::path(
+                                         "export_" +  std::to_string(
+                                             util::TimeUtil::getCurrentTimestampInLong()));
+            export_processor->exportWithProxy(std::async(std::launch::async, [dataset,export_path,dto] {
+                                                  dataset->exportYolo(export_path, dto->task_type, dto->annotated_only);
+                                              }),
+                                              dataset_id, USER->getId(), export_path.string() + ".zip");
         }
 
         ENDPOINT_INFO(exportDataset) {
@@ -246,7 +254,7 @@ namespace ender_label::controller {
             resp->page_num = page;
             resp->page_size = size;
             const auto page_res = db->executeQuery(
-                "SELECT * FROM ender_label_img JOIN ender_label_img_dataset ON ender_label_img_dataset.id = :dataset_id WHERE ender_label_img.id = ANY(ender_label_img_dataset.img_ids) ORDER BY ender_label_img.id LIMIT :limit OFFSET :offset",
+                "SELECT ender_label_img.* FROM ender_label_img JOIN ender_label_img_dataset ON ender_label_img_dataset.id = :dataset_id WHERE ender_label_img.id = ANY(ender_label_img_dataset.img_ids) ORDER BY ender_label_img.id LIMIT :limit OFFSET :offset",
                 {
                     {"dataset_id", dataset->getId()},
                     {"limit", size},
@@ -259,7 +267,7 @@ namespace ender_label::controller {
                 });
             const auto ret = dataset::Image::paginate(page_res, count_res);
             resp->data = dataset::Image::toDtoList(std::get<0>(ret));
-            resp->page_total = std::get<1>(ret) / size;
+            resp->page_total = std::get<1>(ret);
             return createDtoResponse(Status::CODE_200, resp);
         }
 

@@ -19,6 +19,9 @@ namespace ender_label::service::dataset::annotation {
 
     class Annotation : public ServiceBean<table_name, AnnotationDto, Int64> {
     public:
+        explicit Annotation(const auto &dto): ServiceBean(dto) {
+        }
+
         virtual std::string toYolo() = 0;
 
         virtual std::string toCoco() = 0;

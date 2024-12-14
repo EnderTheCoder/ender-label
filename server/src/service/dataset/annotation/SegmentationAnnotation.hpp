@@ -16,7 +16,7 @@ namespace ender_label::service::dataset::annotation {
             return mapper->readFromString<Object<SegmentationDto> >(this->getDto()->raw_json);
         }
 
-        auto cls_key_to_idx(const auto &key) {
+        auto clsKeyToIdx(const auto &key) {
             auto idx = 0;
             for (; idx < this->getDto()->anno_cls_ids->size(); idx++) {
                 if (AnnotationClass::getById(this->getDto()->anno_cls_ids[idx])->getDto()->key == key) {
@@ -29,13 +29,32 @@ namespace ender_label::service::dataset::annotation {
             return idx;
         }
 
+        auto clsIdToSerial(const auto &id) {
+            auto idx = 0;
+            for (auto it = this->getDto()->anno_cls_ids->begin(); it != this->getDto()->anno_cls_ids->end();
+                 ++it, ++idx) {
+                if (*it == id) {
+                    return idx;
+                }
+            }
+            throw LabelNotFoundException("", "", "");
+        }
+
     public:
+        explicit SegmentationAnnotation(const auto &dto): Annotation(dto) {
+        }
+
+        template<typename T=SegmentationAnnotation>
+        static auto createShared(const auto &dto) {
+            return std::make_shared<SegmentationAnnotation>(dto);
+        }
+
         std::string toYolo() override {
             std::stringstream ss;
             for (const auto anno = this->get_annotation(); const auto &polygon: *anno->polygons) {
-                ss << polygon->cls_id << " ";
+                ss << clsIdToSerial(polygon->cls_id) << " ";
                 for (const auto &point: *polygon->normalized_points) {
-                    ss << point->front() << " " << point->back();
+                    ss << point->front() << " " << point->back() << " ";
                 }
                 ss << "\n";
             }
@@ -78,7 +97,7 @@ namespace ender_label::service::dataset::annotation {
             for (const auto &shape: *foreign_dto->shapes) {
                 const auto polygon_dto = SegmentationDto::PolygonDto::createShared();
                 try {
-                    polygon_dto->cls_id = cls_key_to_idx(shape->label);
+                    polygon_dto->cls_id = clsKeyToIdx(shape->label);
                 } catch (LabelNotFoundException &e) {
                     e.from = "labelme";
                     e.to = "vanilla";

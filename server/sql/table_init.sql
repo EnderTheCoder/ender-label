@@ -85,4 +85,16 @@ create table if not exists ender_label_annotation_log
     img_id   int8,
     user_id  int4,
     log_type text
-)
+);
+
+create table if not exists ender_label_export_log
+(
+    id           serial primary key,
+    dataset_id   int4,
+    archive_path text,
+    user_id      int4,
+    begin_time   int8,
+    end_time     int8,
+    state        text,
+    info         text
+);

@@ -107,25 +107,89 @@ namespace ender_label::service::dataset {
             this->overwrite(n_dto);
         }
 
-        virtual void importCoco(const std::string &s_path) {
+        auto getAllAnnoWithType(const Enum<TaskType>::AsString &type) {
+            const auto res = this->db->executeQuery("SELECT ender_label_img_dataset_annotation.* "
+                                                    "FROM ender_label_img_dataset_annotation "
+                                                    "JOIN ender_label_img ON ender_label_img.id = ender_label_img_dataset_annotation.img_id "
+                                                    "JOIN ender_label_img_dataset ON ender_label_img.id = ANY (ender_label_img_dataset.img_ids) "
+                                                    "WHERE ender_label_img_dataset.id = :dataset_id AND ender_label_img_dataset_annotation.task_type = :task_type",
+                                                    {
+                                                        {"dataset_id", this->getId()},
+                                                        {"task_type", type}
+                                                    });
+            return annotation::Annotation::toDtoList(annotation::Annotation::getList(res));
         }
 
-        virtual void importLabelme(const std::string &s_path) {
+        auto getAllImage() {
+            const auto res = this->db->executeQuery(
+                "SELECT ender_label_img.* FROM ender_label_img "
+                "JOIN ender_label_img_dataset ON ender_label_img.id = ANY(ender_label_img_dataset.img_ids) "
+                "WHERE ender_label_img_dataset.id = :dataset_id", {
+                    {"dataset_id", this->getId()},
+                });
+            return Image::toDtoList(Image::getList(res));
         }
 
-        virtual void importVoc(const std::string &s_path) {
+        void importCoco(const std::string &s_path) {
         }
 
-        virtual void exportYolo() {
+        void importLabelme(const std::string &s_path) {
         }
 
-        virtual void exportCoco() {
+        void importVoc(const std::string &s_path) {
         }
 
-        virtual void exportLabelme() {
+        void exportYolo(const std::filesystem::path export_path, const TaskType &task_type,
+                        const auto &annotated_only) {
+            if (not exists(export_path)) {
+                create_directory(export_path);
+            }
+            const auto label_root = export_path / "labels";
+            const auto image_root = export_path / "images";
+
+            if (not exists(label_root)) {
+                create_directory(label_root);
+            }
+            if (not exists(image_root)) {
+                create_directory(image_root);
+            }
+            auto img_dtos_f = std::async(std::launch::async, [this] {
+                return getAllImage();
+            });
+            const auto anno_dtos = getAllAnnoWithType(task_type);
+            std::unordered_set<int64_t> img_ids = {};
+            for (const auto &anno_dto: *anno_dtos) {
+                String anno_str{};
+                switch (task_type) {
+                    case TaskType::segment: {
+                        const auto anno = annotation::SegmentationAnnotation::createShared<>(anno_dto);
+                        anno_str = anno->toYolo();
+                        break;
+                    }
+                    default:
+                        throw std::runtime_error("Task type is not implemented.");
+                }
+                img_ids.emplace(anno_dto->img_id);
+                anno_str.saveToFile((label_root / (std::to_string(anno_dto->img_id) + ".txt")).c_str());
+            }
+            const auto img_dtos = img_dtos_f.get();
+            for (const auto img_dto: *img_dtos | std::views::filter([&annotated_only, &img_ids](auto &x) {
+                if (annotated_only) {
+                    return img_ids.contains(*x->id);
+                }
+                return true;
+            })) {
+                copy_file(std::filesystem::path(*img_dto->relative_path), image_root);
+            }
         }
 
-        virtual void exportVoc() {
+        void exportCoco() {
+        }
+
+        void exportLabelme() {
+        }
+
+        void exportVoc() {
         }
 
         void exportVanilla() override {
@@ -151,17 +215,21 @@ namespace ender_label::service::dataset {
             return keys;
         }
 
-        auto getStorageDir() {
-            OATPP_COMPONENT(oatpp::Object<data::ConfigDto>, config);
-            const auto base = fs::path(config->storage);
-            return base / "datasets" / std::to_string(*this->getId());
-        }
+        // auto getStorageDir() {
+        //     OATPP_COMPONENT(oatpp::Object<data::ConfigDto>, config);
+        //     const auto base = fs::path(config->storage);
+        //     return base / "datasets" / std::to_string(*this->getId());
+        // }
 
         void initStorage() {
-            if (const auto path = this->getStorageDir(); not exists(path)) {
+            const auto path = this->root();
+            if (not exists(path)) {
                 create_directory(path);
             } else {
                 OATPP_LOGW("DATASET", "Skipping init existing dataset storage path: %s", path.c_str())
+            }
+            if (not exists(path / "exports")) {
+                create_directory(path / "exports");
             }
         }
 
