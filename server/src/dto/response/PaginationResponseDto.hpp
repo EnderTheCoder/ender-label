@@ -6,8 +6,8 @@
 namespace ender_label::dto {
 
 template<typename T>
-class PagedResponseDto : public SimpleDataResponseDto<oatpp::Vector<T>> {
-    DTO_INIT(PagedResponseDto, SimpleDataResponseDto<oatpp::Vector<T>>)
+class PaginationResponseDto : public SimpleDataResponseDto<oatpp::Vector<T>> {
+    DTO_INIT(PaginationResponseDto, SimpleDataResponseDto<oatpp::Vector<T>>)
 
     DTO_FIELD(oatpp::Int32, page_num);
 

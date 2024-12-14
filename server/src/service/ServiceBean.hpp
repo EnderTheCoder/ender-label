@@ -24,17 +24,6 @@ namespace ender_label::service {
 
     protected:
         OATPP_COMPONENT(std::shared_ptr<PgDb>, db);
-
-        static auto checkPage(const Int32 &page_size, const Int32 &page_num, const int max_page_size) {
-            using namespace web::protocol::http;
-            if (page_size <= 0 || page_num <= 0) {
-                throw HttpError(Status::CODE_400, "Invalid page arguments.");
-            }
-            if (page_size > max_page_size) {
-                throw HttpError(Status::CODE_400, "Page size too large.");
-            }
-        }
-
     public:
         ServiceBean() = default;
 
@@ -42,6 +31,16 @@ namespace ender_label::service {
 
         explicit ServiceBean(const Object<DTO_TYPE> &dto) {
             this->dto = dto;
+        }
+
+        static auto checkPage(const Int32 &page_size, const Int32 &page_num, const int max_page_size = 100) {
+            using namespace web::protocol::http;
+            if (page_size <= 0 || page_num <= 0) {
+                throw HttpError(Status::CODE_400, "Invalid page arguments.");
+            }
+            if (page_size > max_page_size) {
+                throw HttpError(Status::CODE_400, "Page size too large.");
+            }
         }
 
         template<typename T=ServiceBean>
@@ -244,6 +243,14 @@ namespace ender_label::service {
             using namespace web::protocol::http;
             checkPage(request->page_size, request->page_num, max_page_size);
             return getList(res, wrapped);
+        }
+
+        template<int max_page_size = 100>
+        static auto
+        paginate(const std::shared_ptr<oatpp::orm::QueryResult> &page_res,
+                 const std::shared_ptr<oatpp::orm::QueryResult> &count_res,
+                 const bool wrapped = false) {
+            return std::make_tuple(getList(page_res, wrapped), count(count_res));
         }
 
         void overwrite(const Object<DTO_TYPE> &_dto, const std::unordered_set<std::string> &allow_fields = {}) {

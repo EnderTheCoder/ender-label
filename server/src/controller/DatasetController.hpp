@@ -16,6 +16,7 @@
 #include "util/ControllerUtil.hpp"
 #include <service/processor/BackgroundImageProcessor.hpp>
 #include "service/dataset/task/AnnotationTask.hpp"
+#include "dto/response/PaginationResponseDto.hpp"
 #include OATPP_CODEGEN_BEGIN(ApiController)
 
 namespace ender_label::controller {
@@ -232,6 +233,41 @@ namespace ender_label::controller {
             info->description = "查询指定数据集下面所有的图片信息（不包含图片数据，只有图片各项基本信息）";
             info->addResponse<Object<ArrayResponseDto<Object<
                 data::ImageDto> > > >(Status::CODE_200, "application/json");
+        }
+
+        ENDPOINT("GET", "/dataset/{dataset_id}/image/paginate", paginateImage, PATH(Int32,dataset_id),
+                 QUERY(Int32, size), QUERY(Int32, page), AUTH_HEADER) {
+            AUTH
+            const OATPP_COMPONENT(std::shared_ptr<PgDb>, db);
+            dataset::Image::checkPage(size, page);
+            const auto dataset = dataset::ImageDataset::getById(dataset_id);
+            OATPP_ASSERT_HTTP(dataset != nullptr, Status::CODE_404, "Requested dataset not found")
+            const auto resp = PaginationResponseDto<Object<data::ImageDto> >::createShared();
+            resp->page_num = page;
+            resp->page_size = size;
+            const auto page_res = db->executeQuery(
+                "SELECT * FROM ender_label_img JOIN ender_label_img_dataset ON ender_label_img_dataset.id = :dataset_id WHERE ender_label_img.id = ANY(ender_label_img_dataset.img_ids) ORDER BY ender_label_img.id LIMIT :limit OFFSET :offset",
+                {
+                    {"dataset_id", dataset->getId()},
+                    {"limit", size},
+                    {"offset", dataset::Image::getPaginationOffset(page, size)}
+                });
+            const auto count_res = db->executeQuery(
+                "SELECT count(ender_label_img.id) FROM ender_label_img JOIN ender_label_img_dataset ON ender_label_img_dataset.id = :dataset_id WHERE ender_label_img.id = ANY(ender_label_img_dataset.img_ids)",
+                {
+                    {"dataset_id", dataset->getId()}
+                });
+            const auto ret = dataset::Image::paginate(page_res, count_res);
+            resp->data = dataset::Image::toDtoList(std::get<0>(ret));
+            resp->page_total = std::get<1>(ret);
+            return createDtoResponse(Status::CODE_200, resp);
+        }
+
+        ENDPOINT_INFO(paginateImage) {
+            info->name = "分页查询获取数据集图片基本信息";
+            info->description = "分页查询指定数据集下面所有的图片信息（不包含图片数据，只有图片各项基本信息）";
+            info->addResponse<Object<PaginationResponseDto<Object<data::ImageDto> > > >(
+                Status::CODE_200, "application/json");
         }
 
         ENDPOINT("GET", "/dataset/{dataset_id}/image/{image_id}/annotation/all", listImageAnnotation,
