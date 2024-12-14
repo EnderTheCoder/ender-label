@@ -15,7 +15,7 @@ namespace ender_label::service::processor {
         std::unordered_set<int32_t> working_datasets = {};
         const OATPP_COMPONENT(std::shared_ptr<db::PgDb>, db);
 
-        auto initState() {
+        auto initState() const {
             const auto res = db->executeQuery(
                 "UPDATE ender_label_export_log SET state = 'TIMEOUT', end_time = int8(EXTRACT(EPOCH FROM NOW())) WHERE state = 'WORKING'",
                 {});
