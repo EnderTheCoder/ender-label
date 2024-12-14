@@ -259,7 +259,7 @@ namespace ender_label::controller {
                 });
             const auto ret = dataset::Image::paginate(page_res, count_res);
             resp->data = dataset::Image::toDtoList(std::get<0>(ret));
-            resp->page_total = std::get<1>(ret);
+            resp->page_total = std::get<1>(ret) / size;
             return createDtoResponse(Status::CODE_200, resp);
         }
 
