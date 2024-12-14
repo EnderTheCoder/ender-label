@@ -135,7 +135,7 @@ namespace ender_label::controller {
             const auto export_path = dataset->root() / "exports" / std::filesystem::path(
                                          "export_" +  std::to_string(
                                              util::TimeUtil::getCurrentTimestampInLong()));
-            export_processor->exportWithProxy(std::async(std::launch::async, [dataset,export_path,dto] {
+            export_processor->exportWithProxy(std::async(std::launch::async, [dataset, export_path, dto] {
                                                   dataset->exportYolo(export_path, dto->task_type, dto->annotated_only);
                                               }),
                                               dataset_id, USER->getId(), export_path.string() + ".zip");

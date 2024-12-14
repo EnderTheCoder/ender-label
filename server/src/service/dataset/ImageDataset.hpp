@@ -16,6 +16,7 @@
 #include "Dataset.hpp"
 #include "Image.hpp"
 #include <opencv2/opencv.hpp>
+#include <boost/asio.hpp>
 
 namespace ender_label::service::dataset {
     namespace fs = std::filesystem;
@@ -29,10 +30,10 @@ namespace ender_label::service::dataset {
             return path(config->storage) / "datasets" / path(std::to_string(this->getDto()->id));
         }
 
-        virtual void importYolo(const std::string &s_path,
-                                const std::unordered_set<std::string> &supported_img_ext,
-                                const std::unordered_set<std::string> &supported_anno_ext,
-                                const TaskType &task_type) {
+        void importYolo(const std::string &s_path,
+                        const std::unordered_set<std::string> &supported_img_ext,
+                        const std::unordered_set<std::string> &supported_anno_ext,
+                        const TaskType &task_type) {
             using namespace std::filesystem;
             const path root(s_path);
             auto img_paths = std::set<path>{};
@@ -87,14 +88,11 @@ namespace ender_label::service::dataset {
                     }
                     copy_file(img_path, dst);
                     auto img = Image::createFromFile(dst);
-                    for (const auto &ext: supported_anno_ext) {
-                        if (const auto stem = img_path.stem(); stem_to_anno_paths.contains(stem)) {
-                            auto img_id = img->getId();
-                            func_import_anno(img_path, stem_to_anno_paths.at(stem), img_id);
-                            break;
-                        }
+                    if (const auto stem = img_path.stem(); stem_to_anno_paths.contains(stem)) {
+                        auto img_id = img->getId();
+                        func_import_anno(img_path, stem_to_anno_paths.at(stem), img_id);
+                        break;
                     }
-
                     if (n_dto->img_ids == nullptr) {
                         n_dto->img_ids = {};
                     }
@@ -139,7 +137,7 @@ namespace ender_label::service::dataset {
         void importVoc(const std::string &s_path) {
         }
 
-        void exportYolo(const std::filesystem::path export_path, const TaskType &task_type,
+        void exportYolo(const std::filesystem::path &export_path, const TaskType &task_type,
                         const auto &annotated_only) {
             if (not exists(export_path)) {
                 create_directory(export_path);
@@ -153,34 +151,46 @@ namespace ender_label::service::dataset {
             if (not exists(image_root)) {
                 create_directory(image_root);
             }
+
+            boost::asio::thread_pool anno_pool(16);
             auto img_dtos_f = std::async(std::launch::async, [this] {
                 return getAllImage();
             });
             const auto anno_dtos = getAllAnnoWithType(task_type);
             std::unordered_set<int64_t> img_ids = {};
+            std::mutex img_ids_lck;
             for (const auto &anno_dto: *anno_dtos) {
-                String anno_str{};
-                switch (task_type) {
-                    case TaskType::segment: {
-                        const auto anno = annotation::SegmentationAnnotation::createShared<>(anno_dto);
-                        anno_str = anno->toYolo();
-                        break;
+                boost::asio::post(anno_pool, [task_type, &img_ids, anno_dto, &label_root, &img_ids_lck]() {
+                    String anno_str{};
+                    switch (task_type) {
+                        case TaskType::segment: {
+                            const auto anno = annotation::SegmentationAnnotation::createShared<>(anno_dto);
+                            anno_str = anno->toYolo();
+                            break;
+                        }
+                        default:
+                            throw std::runtime_error("Task type is not implemented.");
+                    } {
+                        std::lock_guard guard(img_ids_lck);
+                        img_ids.emplace(anno_dto->img_id);
                     }
-                    default:
-                        throw std::runtime_error("Task type is not implemented.");
-                }
-                img_ids.emplace(anno_dto->img_id);
-                anno_str.saveToFile((label_root / (std::to_string(anno_dto->img_id) + ".txt")).c_str());
+                    anno_str.saveToFile((label_root / (std::to_string(anno_dto->img_id) + ".txt")).c_str());
+                });
             }
+            anno_pool.join();
+            boost::asio::thread_pool img_pool(16);
             const auto img_dtos = img_dtos_f.get();
-            for (const auto img_dto: *img_dtos | std::views::filter([&annotated_only, &img_ids](auto &x) {
+            for (const auto &img_dto: *img_dtos | std::views::filter([&annotated_only, &img_ids](auto &x) {
                 if (annotated_only) {
                     return img_ids.contains(*x->id);
                 }
                 return true;
             })) {
-                copy_file(std::filesystem::path(*img_dto->relative_path), image_root);
+                boost::asio::post(img_pool, [&img_dto, &image_root]() {
+                    copy_file(std::filesystem::path(*img_dto->relative_path), image_root);
+                });
             }
+            img_pool.join();
         }
 
         void exportCoco() {
