@@ -63,10 +63,11 @@ namespace ender_label::service::processor {
             const auto export_log = dataset::ExportLog::createShared(n_dto);
             export_log->write(); {
                 std::lock_guard guard(this->dataset_lck);
-                this->working_datasets.emplace(*export_log->getId());
+                this->working_datasets.emplace(dataset_id);
             }
             boost::asio::post(
-                this->pool, [export_future = std::move(export_future), export_path,archive_path, export_log, this]() {
+                this->pool,
+                [export_future = std::move(export_future), export_path,archive_path, export_log,dataset_id, this]() {
                     try {
                         export_future.wait();
                         ExportProcessor::createZip(export_path, archive_path, true);
@@ -83,7 +84,7 @@ namespace ender_label::service::processor {
                         export_log->overwrite(o_dto);
                     } {
                         std::lock_guard guard(this->dataset_lck);
-                        this->working_datasets.erase(*export_log->getId());
+                        this->working_datasets.erase(dataset_id);
                     }
                 });
         }
