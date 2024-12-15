@@ -148,6 +148,33 @@ namespace ender_label::controller {
             info->addResponse<Object<BaseResponseDto> >(Status::CODE_200, "application/json");
         }
 
+        ENDPOINT("GET", "/dataset/{dataset_id}/export/paginate", paginateExports, QUERY(Int32, size),
+                 QUERY(Int32, page), PATH(Int32, dataset_id), AUTH_HEADER) {
+            AUTH
+            dataset::ExportLog::checkPage(size, page);
+            const OATPP_COMPONENT(std::shared_ptr<PgDb>, db);
+            const auto page_res = db->executeQuery(
+                "SELECT * FROM ender_label_export_log WHERE dataset_id = :dataset_id", {
+                    {"dataset_id", dataset_id},
+                });
+            const auto count_res = db->executeQuery(
+                "SELECT count(id) FROM ender_label_export_log WHERE  dataset_id = :dataset_id", {
+                    {"dataset_id", dataset_id},
+                });
+            const auto resp = PaginationResponseDto<Object<data::ExportLogDto> >::createShared();
+            resp->page_size = size;
+            resp->page_num = page;
+            const auto ret = dataset::ExportLog::paginate(page_res, count_res);
+            resp->data = dataset::ExportLog::toDtoList(std::get<0>(ret));
+            resp->page_total = std::get<1>(ret);
+            return createDtoResponse(Status::CODE_200, resp);
+        }
+
+        ENDPOINT_INFO(paginateExports) {
+            info->description = "分页查询获取指定数据集下的导出记录";
+            info->addResponse<Object<PaginationResponseDto<Object<data::ExportLogDto> >> >(Status::CODE_200, "application/json");
+        }
+
         ENDPOINT("GET", "/dataset/export/{export_log_id}/download", downloadExport, AUTH_HEADER,
                  PATH(Int32, export_id)) {
             AUTH
