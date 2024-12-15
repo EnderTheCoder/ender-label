@@ -33,9 +33,10 @@ namespace ender_label::service::processor {
         }
 
         void start() const {
-            std::thread t([this] {
+            std::thread t([&] {
                 using namespace std::chrono_literals;
                 while (true) {
+                    boost::asio::thread_pool pool(16);
                     if (this->sig_terminate) return;
                     auto thumbnail = getThumbnailDir();
                     // gen thumbnail
@@ -46,14 +47,13 @@ namespace ender_label::service::processor {
                             exists(img_thumbnail_path)) {
                             OATPP_LOGI("THUMBNAIL", "Thumbnail for img[%ld] does not exist, start generating.",
                                        *img_u->getId())
-                            auto mat = img_u->genThumbnail();
-                            imwrite(thumbnail / *(img_u->getDto()->md5_hash_32 + ".png"), mat);
-                            success_gen++;
+                            post(pool, [img_u, thumbnail] {
+                                auto mat = img_u->genThumbnail();
+                                imwrite(thumbnail / *(img_u->getDto()->md5_hash_32 + ".png"), mat);
+                            });
                         }
                     }
-                    if (success_gen != 0) {
-                        OATPP_LOGI("THUMBNAIL", "Thumbnail gen complete: %d succeed.", success_gen)
-                    }
+                    pool.wait();
                     std::this_thread::sleep_for(1000ms);
                 }
             });
