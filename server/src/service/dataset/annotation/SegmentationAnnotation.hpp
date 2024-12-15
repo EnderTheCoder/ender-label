@@ -75,11 +75,24 @@ namespace ender_label::service::dataset::annotation {
             std::vector<std::string> lines;
             split(lines, source, boost::is_any_of("\n"));
             for (const auto &line: lines) {
+                if (line == "") continue;
                 const auto polygon_dto = SegmentationDto::PolygonDto::createShared();
                 std::vector<std::string> nums;
                 split(nums, line, boost::is_any_of(" "));
-                const auto cls_id = std::stoi(nums.front());
+                auto cls_id = 0;
+                try {
+                    cls_id = std::stoi(nums.front());
+                } catch (std::invalid_argument &e) {
+                    throw std::invalid_argument(
+                        "Invalid literal cls id " + nums.front() + " while parsing annotation.");
+                }
                 polygon_dto->normalized_points = {};
+                if ((nums.size() - 1) % 2 != 0) {
+                    throw std::invalid_argument("Invalid point xy pairs: size is not dividable by 2.");
+                }
+                if ((nums.size() - 1) / 2 < 3) {
+                    throw std::invalid_argument("An polygon need at least 3 points");
+                }
                 for (auto it_x = nums.begin() + 1; it_x < nums.end(); it_x += 2) {
                     auto point = List<Float64>::createShared();
                     point->resize(2);

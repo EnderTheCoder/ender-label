@@ -55,51 +55,72 @@ namespace ender_label::service::dataset {
             func_list_dir(root);
             auto func_import_anno = [&task_type, this](auto &img_p, auto &anno_p, auto &img_id) {
                 using namespace annotation;
-                if (task_type == TaskType::segment) {
-                    if (const auto img = cv::imread(img_p.c_str()); img.empty()) {
-                        throw std::runtime_error("Failed to load img from " + img_p.string() + ": broken.");
+                try {
+                    if (task_type == TaskType::segment) {
+                        if (const auto img = cv::imread(img_p.c_str()); img.empty()) {
+                            throw std::runtime_error("Failed to load img from " + img_p.string() + ": broken.");
+                        }
+
+                        auto source = String::loadFromFile(anno_p.c_str());
+                        const auto anno_dto = AnnotationDto::createShared();
+                        anno_dto->anno_cls_ids = this->getDto()->class_ids;
+                        anno_dto->img_id = img_id;
+                        anno_dto->task_type = task_type;
+                        anno_dto->owner_id = this->getDto()->owner_id;
+                        // anno_dto->width = img.cols;
+                        // anno_dto->height = img.rows;
+
+
+                        auto annotation = SegmentationAnnotation::createShared<SegmentationAnnotation>(anno_dto);
+                        annotation->fromYolo(source);
+                        annotation->write();
+                    } else {
+                        throw std::runtime_error("Unimplemented task type.");
                     }
-
-                    auto source = String::loadFromFile(anno_p.c_str());
-                    const auto anno_dto = AnnotationDto::createShared();
-                    anno_dto->anno_cls_ids = this->getDto()->class_ids;
-                    anno_dto->img_id = img_id;
-                    anno_dto->task_type = task_type;
-                    anno_dto->owner_id = this->getDto()->owner_id;
-                    // anno_dto->width = img.cols;
-                    // anno_dto->height = img.rows;
-
-
-                    auto annotation = SegmentationAnnotation::createShared<SegmentationAnnotation>(anno_dto);
-                    annotation->fromYolo(source);
-                    annotation->write();
+                } catch (std::exception &e) {
+                    OATPP_LOGE("ANNOTATION", "Failed to import annotation[%s]. Reason: %s", anno_p.c_str(), e.what())
                 }
             };
             auto n_dto = data::ImageDatasetDto::createShared();
             n_dto->img_ids = this->getDto()->img_ids;
-            for (const auto &img_path: img_paths) {
-                try {
-                    auto dst = this->root() / img_path.filename();
-                    if (exists(dst)) {
-                        OATPP_LOGI("DATASET", "Skipping import existing img file: %s", img_path.filename().c_str())
-                        continue;
-                    }
-                    copy_file(img_path, dst);
-                    auto img = Image::createFromFile(dst);
-                    if (const auto stem = img_path.stem(); stem_to_anno_paths.contains(stem)) {
-                        auto img_id = img->getId();
-                        func_import_anno(img_path, stem_to_anno_paths.at(stem), img_id);
-                        break;
-                    }
-                    if (n_dto->img_ids == nullptr) {
-                        n_dto->img_ids = {};
-                    }
-                    n_dto->img_ids->emplace(img->getId());
-                } catch (filesystem_error &e) {
-                    OATPP_LOGE("DATASET", "Exception while importing image file %s to dataset %d: %s",
-                               img_path.c_str(), *this->getId(), e.what())
-                }
+            if (n_dto->img_ids == nullptr) {
+                n_dto->img_ids = {};
             }
+            boost::asio::thread_pool pool(32);
+            std::mutex set_lck;
+            OATPP_LOGI("DATASET", "Start to import images/annotations for dataset %d", *this->getId());
+            for (const auto &img_path: img_paths) {
+                auto dst = this->root() / img_path.filename();
+                if (exists(dst)) {
+                    OATPP_LOGI("DATASET", "Skipping import existing img file: %s", img_path.filename().c_str())
+                    continue;
+                }
+                post(pool, [img_path, dst, func_import_anno, stem_to_anno_paths, &n_dto, this, &set_lck]() {
+                    try {
+                        copy_file(img_path, dst);
+                        auto img = Image::createFromFile(dst);
+                        if (const auto stem = img_path.stem(); stem_to_anno_paths.contains(stem)) {
+                            auto img_id = img->getId();
+                            func_import_anno(img_path, stem_to_anno_paths.at(stem), img_id);
+                        } {
+                            std::lock_guard guard(set_lck);
+                            n_dto->img_ids->emplace(img->getId());
+                        }
+                    } catch (filesystem_error &e) {
+                        OATPP_LOGE("DATASET", "Exception while importing image file %s to dataset %d: %s",
+                                   img_path.c_str(), *this->getId(), e.what())
+                    }
+                });
+            }
+            OATPP_LOGI("DATASET", "Scan images/annotations complete, found %ld. Waiting for pool to finish.",
+                       img_paths.size());
+            pool.wait();
+            auto prev_img_size = 0;
+            if (this->getDto()->img_ids != nullptr) {
+                prev_img_size = this->getDto()->img_ids->size();
+            }
+            OATPP_LOGI("DATASET", "Import complete, added %ld images.",
+                       n_dto->img_ids->size() - prev_img_size);
             this->overwrite(n_dto);
         }
 

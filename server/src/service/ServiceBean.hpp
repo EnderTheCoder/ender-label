@@ -264,7 +264,7 @@ namespace ender_label::service {
                 if (pair.first == "id") continue;
                 auto later = pair.second->get(_dto.get());
                 auto previous = pair.second->get(this->dto.get());
-                if (later != nullptr && later != previous) {
+                if (later != nullptr) {
                     if (!allow_all and !allow_fields.contains(pair.first)) {
                         std::ostringstream warning;
                         warning << "Not allowed to overwrite this field: " << pair.first;

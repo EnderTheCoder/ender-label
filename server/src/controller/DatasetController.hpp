@@ -114,7 +114,14 @@ namespace ender_label::controller {
                     anno_exts.emplace(x);
                 });
             }
-            dataset->importYolo(dto->import_dir, img_exts, anno_exts, TaskType::segment);
+            std::thread t([dataset, dto, img_exts = std::move(img_exts), anno_exts=std::move(anno_exts)] {
+                try {
+                    dataset->importYolo(dto->import_dir, img_exts, anno_exts, TaskType::segment);
+                } catch (std::exception &e) {
+                    OATPP_LOGE("DATASET", "Error while importing dataset. Reason: %s", e.what())
+                }
+            });
+            t.detach();
             return createDtoResponse(Status::CODE_200, resp);
         }
 
@@ -164,7 +171,8 @@ namespace ender_label::controller {
             dataset::ExportLog::checkPage(size, page);
             const OATPP_COMPONENT(std::shared_ptr<PgDb>, db);
             const auto page_res = db->executeQuery(
-                "SELECT * FROM ender_label_export_log WHERE dataset_id = :dataset_id ORDER BY begin_time DESC LIMIT :limit OFFSET :offset ", {
+                "SELECT * FROM ender_label_export_log WHERE dataset_id = :dataset_id ORDER BY begin_time DESC LIMIT :limit OFFSET :offset ",
+                {
                     {"dataset_id", dataset_id},
                     {"limit", size},
                     {"offset", dataset::Image::getPaginationOffset(page, size)}
