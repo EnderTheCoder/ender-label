@@ -4,6 +4,7 @@
 
 #ifndef DATASETCONTROLLER_HPP
 #define DATASETCONTROLLER_HPP
+#include <random>
 #include <dto/data/ExportLogDto.hpp>
 #include <dto/response/ArrayResponseDto.hpp>
 
@@ -25,8 +26,12 @@ namespace ender_label::controller {
 
     class DatasetController final : public oatpp::web::server::api::ApiController {
     private:
+        std::random_device rd;
+        std::uniform_int_distribution<int> distribution;
+
         explicit DatasetController(OATPP_COMPONENT(std::shared_ptr<ObjectMapper>, objectMapper))
             : oatpp::web::server::api::ApiController(objectMapper) {
+            this->distribution = std::uniform_int_distribution{10000000, 100000000};
             this->setErrorHandler(std::make_shared<component::ErrorHandler>(objectMapper));
         }
 
@@ -127,19 +132,22 @@ namespace ender_label::controller {
         ENDPOINT("POST", "/dataset/{dataset_id}/export", exportDataset, AUTH_HEADER,
                  BODY_DTO(Object<request::ExportDatasetRequestDto>, dto), PATH(Int32, dataset_id)) {
             AUTH
-            const auto resp = SimpleDataResponseDto<String>::createShared();
+            const auto resp = BaseResponseDto::createShared();
             const auto dataset = dataset::ImageDataset::getById<dataset::ImageDataset>(dataset_id);
             OATPP_ASSERT_HTTP(dataset != nullptr, Status::CODE_404, "Dataset does not exist.")
             OATPP_ASSERT_HTTP(USER->hasPerm("DATASET_READ_["+std::to_string(dataset_id)+"]"), Status::CODE_200,
                               "Permission denied.")
             OATPP_COMPONENT(std::shared_ptr<processor::ExportProcessor>, export_processor);
+            OATPP_ASSERT_HTTP(not export_processor->getIsDatasetExporting(dataset_id), Status::CODE_409, "Dataset is busy.")
             const auto export_path = dataset->root() / "exports" / std::filesystem::path(
                                          "export_" + std::to_string(
-                                             util::TimeUtil::getCurrentTimestampInLong()));
-            export_processor->exportWithProxy(std::async(std::launch::async, [dataset, export_path, dto] {
-                                                  dataset->exportYolo(export_path, dto->task_type, dto->annotated_only);
-                                              }),
-                                              dataset_id, USER->getId(), export_path.string() + ".zip");
+                                             util::TimeUtil::getCurrentTimestampInLong()) + "_" +
+                                         std::to_string(distribution(rd)));
+            auto f = std::async(std::launch::deferred, [dataset, export_path, dto] {
+                dataset->exportYolo(export_path, dto->task_type, dto->annotated_only);
+            });
+            export_processor->exportWithProxy(std::move(f),
+                                              dataset_id, USER->getId(), export_path);
             return createDtoResponse(Status::CODE_200, resp);
         }
 
@@ -172,7 +180,8 @@ namespace ender_label::controller {
 
         ENDPOINT_INFO(paginateExports) {
             info->description = "分页查询获取指定数据集下的导出记录";
-            info->addResponse<Object<PaginationResponseDto<Object<data::ExportLogDto> >> >(Status::CODE_200, "application/json");
+            info->addResponse<Object<PaginationResponseDto<Object<data::ExportLogDto> > > >(
+                Status::CODE_200, "application/json");
         }
 
         ENDPOINT("GET", "/dataset/export/{export_log_id}/download", downloadExport, AUTH_HEADER,

@@ -185,7 +185,9 @@ namespace ender_label::service::dataset {
                 return true;
             })) {
                 boost::asio::post(img_pool, [&img_dto, &image_root]() {
-                    copy_file(std::filesystem::path(*img_dto->relative_path), image_root);
+                    const auto src = std::filesystem::path(*img_dto->relative_path);
+                    const auto dst = image_root / (std::to_string(*img_dto->id) + src.extension().string());
+                    copy_file(src, dst);
                 });
             }
             img_pool.join();

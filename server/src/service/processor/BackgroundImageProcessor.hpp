@@ -44,7 +44,7 @@ namespace ender_label::service::processor {
                         const auto img_u = std::static_pointer_cast<dataset::Image>(img);
                         if (const auto img_thumbnail_path = imgThumbnailPath(img_u->getDto()->md5_hash_32); not
                             exists(img_thumbnail_path)) {
-                            OATPP_LOGI("THUMBNAIL", "Thumbnail for img[%lld] does not exist, start generating.",
+                            OATPP_LOGI("THUMBNAIL", "Thumbnail for img[%ld] does not exist, start generating.",
                                        *img_u->getId())
                             auto mat = img_u->genThumbnail();
                             imwrite(thumbnail / *(img_u->getDto()->md5_hash_32 + ".png"), mat);
