@@ -33,7 +33,7 @@ namespace ender_label::service::processor {
         }
 
         void start() const {
-            std::thread t([&] {
+            std::thread t([this] {
                 using namespace std::chrono_literals;
                 while (true) {
                     boost::asio::thread_pool pool(16);
