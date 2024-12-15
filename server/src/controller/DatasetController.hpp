@@ -132,13 +132,15 @@ namespace ender_label::controller {
         ENDPOINT("POST", "/dataset/{dataset_id}/export", exportDataset, AUTH_HEADER,
                  BODY_DTO(Object<request::ExportDatasetRequestDto>, dto), PATH(Int32, dataset_id)) {
             AUTH
+            REQUEST_ALL_PARAM_CHECK(dto)
             const auto resp = BaseResponseDto::createShared();
             const auto dataset = dataset::ImageDataset::getById<dataset::ImageDataset>(dataset_id);
             OATPP_ASSERT_HTTP(dataset != nullptr, Status::CODE_404, "Dataset does not exist.")
             OATPP_ASSERT_HTTP(USER->hasPerm("DATASET_READ_["+std::to_string(dataset_id)+"]"), Status::CODE_200,
                               "Permission denied.")
             OATPP_COMPONENT(std::shared_ptr<processor::ExportProcessor>, export_processor);
-            OATPP_ASSERT_HTTP(not export_processor->getIsDatasetExporting(dataset_id), Status::CODE_409, "Dataset is busy.")
+            OATPP_ASSERT_HTTP(not export_processor->getIsDatasetExporting(dataset_id), Status::CODE_409,
+                              "Dataset is busy.")
             const auto export_path = dataset->root() / "exports" / std::filesystem::path(
                                          "export_" + std::to_string(
                                              util::TimeUtil::getCurrentTimestampInLong()) + "_" +
@@ -162,8 +164,10 @@ namespace ender_label::controller {
             dataset::ExportLog::checkPage(size, page);
             const OATPP_COMPONENT(std::shared_ptr<PgDb>, db);
             const auto page_res = db->executeQuery(
-                "SELECT * FROM ender_label_export_log WHERE dataset_id = :dataset_id", {
+                "SELECT * FROM ender_label_export_log WHERE dataset_id = :dataset_id ORDER BY begin_time DESC LIMIT :limit OFFSET :offset ", {
                     {"dataset_id", dataset_id},
+                    {"limit", size},
+                    {"offset", dataset::Image::getPaginationOffset(page, size)}
                 });
             const auto count_res = db->executeQuery(
                 "SELECT count(id) FROM ender_label_export_log WHERE  dataset_id = :dataset_id", {
@@ -184,10 +188,9 @@ namespace ender_label::controller {
                 Status::CODE_200, "application/json");
         }
 
-        ENDPOINT("GET", "/dataset/export/{export_log_id}/download", downloadExport, AUTH_HEADER,
-                 PATH(Int32, export_id)) {
-            AUTH
-            const auto export_log = dataset::ExportLog::getById(export_id);
+        ENDPOINT("GET", "/dataset/export/{export_log_id}/download", downloadExport,
+                 PATH(Int32, export_log_id)) {
+            const auto export_log = dataset::ExportLog::getById(export_log_id);
             OATPP_ASSERT_HTTP(export_log, Status::CODE_404, "Requested export log not found.")
             OATPP_ASSERT_HTTP(export_log->getDto()->state == data::ExportLogState::COMPLETED, Status::CODE_400,
                               "Invalid export state.")

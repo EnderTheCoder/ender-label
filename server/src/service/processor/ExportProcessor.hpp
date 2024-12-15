@@ -38,7 +38,9 @@ namespace ender_label::service::processor {
 
         static auto createZip(const std::filesystem::path &src, const std::filesystem::path &dst,
                               const auto &del_source = true) -> void {
-            system(("zip -r " + dst.string() + " " + src.string()).c_str());
+            boost::format fmt("cd %1% && zip -r -q %2% %3%");
+            fmt % src.parent_path().c_str() % dst.filename().c_str() % src.filename().c_str();
+            system(fmt.str().c_str());
             if (del_source) {
                 remove_all(src);
             }
