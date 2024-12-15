@@ -8,7 +8,7 @@
 #include "oatpp/codegen/ApiController_define.hpp"
 #define AUTH \
     auto _user = ender_label::util::get_current_user(_authorization); \
-    if (_user == nullptr) {throw web::protocol::http::HttpError(oatpp::web::protocol::http::Status::CODE_403, "Permission denied."); }
+    if (_user == nullptr) {throw web::protocol::http::HttpError(oatpp::web::protocol::http::Status::CODE_401, "Permission denied."); }
 
 #define USER _user
 

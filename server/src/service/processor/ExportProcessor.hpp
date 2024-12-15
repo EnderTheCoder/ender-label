@@ -40,7 +40,7 @@ namespace ender_label::service::processor {
             n_dto->dataset_id = dataset_id;
             n_dto->user_id = user_id;
             n_dto->begin_time = util::TimeUtil::getCurrentTimestampInLong();
-            n_dto->state = data::ExportLogType::WORKING;
+            n_dto->state = data::ExportLogState::WORKING;
             n_dto->archive_path = archive_path;
             const auto export_log = dataset::ExportLog::createShared(n_dto);
             export_log->write();
@@ -50,13 +50,13 @@ namespace ender_label::service::processor {
                     export_future.get();
                     const auto o_dto = data::ExportLogDto::createShared();
                     o_dto->end_time = util::TimeUtil::getCurrentTimestampInLong();
-                    o_dto->state = data::ExportLogType::COMPLETED;
+                    o_dto->state = data::ExportLogState::COMPLETED;
                     o_dto->info = "OK";
                     export_log->overwrite(o_dto);
                 } catch (std::exception &e) {
                     const auto o_dto = data::ExportLogDto::createShared();
                     o_dto->end_time = util::TimeUtil::getCurrentTimestampInLong();
-                    o_dto->state = data::ExportLogType::EXCEPTION;
+                    o_dto->state = data::ExportLogState::EXCEPTION;
                     o_dto->info = e.what();
                     export_log->overwrite(o_dto);
                 }

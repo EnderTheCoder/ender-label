@@ -4,6 +4,7 @@
 
 #ifndef DATASETCONTROLLER_HPP
 #define DATASETCONTROLLER_HPP
+#include <dto/data/ExportLogDto.hpp>
 #include <dto/response/ArrayResponseDto.hpp>
 
 #include "dto/request/ImportDatasetRequestDto.hpp"
@@ -133,17 +134,41 @@ namespace ender_label::controller {
                               "Permission denied.")
             OATPP_COMPONENT(std::shared_ptr<processor::ExportProcessor>, export_processor);
             const auto export_path = dataset->root() / "exports" / std::filesystem::path(
-                                         "export_" +  std::to_string(
+                                         "export_" + std::to_string(
                                              util::TimeUtil::getCurrentTimestampInLong()));
             export_processor->exportWithProxy(std::async(std::launch::async, [dataset, export_path, dto] {
                                                   dataset->exportYolo(export_path, dto->task_type, dto->annotated_only);
                                               }),
                                               dataset_id, USER->getId(), export_path.string() + ".zip");
+            return createDtoResponse(Status::CODE_200, resp);
         }
 
         ENDPOINT_INFO(exportDataset) {
-            info->description = "导出数据集";
+            info->description = "请求导出数据集";
             info->addResponse<Object<BaseResponseDto> >(Status::CODE_200, "application/json");
+        }
+
+        ENDPOINT("GET", "/dataset/export/{export_log_id}/download", downloadExport, AUTH_HEADER,
+                 PATH(Int32, export_id)) {
+            AUTH
+            const auto export_log = dataset::ExportLog::getById(export_id);
+            OATPP_ASSERT_HTTP(export_log, Status::CODE_404, "Requested export log not found.")
+            OATPP_ASSERT_HTTP(export_log->getDto()->state == data::ExportLogState::COMPLETED, Status::CODE_400,
+                              "Invalid export state.")
+            const auto content = String::loadFromFile(export_log->getDto()->archive_path->c_str());
+            const auto resp = createResponse(Status::CODE_200, content);
+            const auto file_path = std::filesystem::path(export_log->getDto()->archive_path);
+            const auto filename = file_path.filename();
+            resp->putHeader("Content-Disposition", "attachment; filename=\"" + filename.string() + "\"");
+            resp->putHeader("Content-Type", "application/zip");
+            resp->putHeader("Content-Length", std::to_string(file_size(file_path)));
+            resp->putHeader("Content-Transfer-Encoding", "binary");
+            return resp;
+        }
+
+        ENDPOINT_INFO(downloadExport) {
+            info->description = "下载导出的zip压缩文件";
+            info->addResponse(Status::CODE_200, "application/zip");
         }
 
         ENDPOINT("GET", "/dataset/{dataset_id}/delete", rmDataset, AUTH_HEADER, PATH(Int32, dataset_id)) {
@@ -636,6 +661,7 @@ namespace ender_label::controller {
             info->addResponse<Object<ArrayResponseDto<Int64> > >(
                 Status::CODE_200, "application/json");
         }
+
 
         // ENDPOINT("GET", "/dataset/{dataset_id}/task/all", getAllAnnoTask, PATH(Int32, dataset_id), AUTH_HEADER)
     };

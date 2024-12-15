@@ -16,7 +16,7 @@
 #include OATPP_CODEGEN_BEGIN(DTO)
 
 namespace ender_label::dto::data {
-    ENUM(ExportLogType, v_int32,
+    ENUM(ExportLogState, v_int32,
          VALUE(WAITING,0), VALUE(WORKING,1), VALUE(EXCEPTION, 2), VALUE(COMPLETED,3), VALUE(TIMEOUT,4))
 
     class ExportLogDto : public oatpp::DTO {
@@ -57,7 +57,7 @@ namespace ender_label::dto::data {
             info->description = "结束导出的时间";
         }
 
-        DTO_FIELD(Enum<ExportLogType>, state);
+        DTO_FIELD(Enum<ExportLogState>, state);
 
         DTO_FIELD_INFO(state) {
             info->description = "导出状态";
