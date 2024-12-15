@@ -37,7 +37,14 @@ namespace ender_label::service::dataset::annotation {
                     return idx;
                 }
             }
-            throw LabelNotFoundException("", "", "");
+            throw LabelNotFoundException("", "", std::to_string(id));
+        }
+
+        auto serialToClsId(const auto &serial) {
+            if (serial >= this->getDto()->anno_cls_ids->size() or serial < 0) {
+                throw LabelNotFoundException("", "", std::to_string(serial));
+            }
+            return this->getDto()->anno_cls_ids[serial];
         }
 
     public:
@@ -83,7 +90,7 @@ namespace ender_label::service::dataset::annotation {
                 if (cls_id >= this->getDto()->anno_cls_ids->size()) {
                     throw LabelNotFoundException("yolo", "vanilla", std::to_string(cls_id));
                 }
-                polygon_dto->cls_id = cls_id;
+                polygon_dto->cls_id = this->serialToClsId(cls_id);
                 dto->polygons->emplace_back(polygon_dto);
             }
             this->getDto()->raw_json = mapper->writeToString(dto);

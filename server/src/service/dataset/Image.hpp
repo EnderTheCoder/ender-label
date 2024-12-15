@@ -40,7 +40,6 @@ namespace ender_label::service::dataset {
             return obj;
         }
 
-
         auto genThumbnail() {
             const auto path = fs::path{this->getDto()->relative_path};
             const auto img = readCvImgFromDisk();
