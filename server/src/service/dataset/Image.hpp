@@ -44,8 +44,8 @@ namespace ender_label::service::dataset {
         auto genThumbnail() {
             const auto path = fs::path{this->getDto()->relative_path};
             const auto img = readCvImgFromDisk();
-            int height = img.rows;
-            int width = img.cols;
+            auto height = static_cast<float>(img.rows);
+            auto width = static_cast<float>(img.cols);
             float scale = std::min(100.0f / width, 100.0f / height);
             int newWidth = static_cast<int>(width * scale);
             int newHeight = static_cast<int>(height * scale);
