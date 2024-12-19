@@ -35,6 +35,8 @@ namespace ender_label::controller {
             this->setErrorHandler(std::make_shared<component::ErrorHandler>(objectMapper));
         }
 
+        const OATPP_COMPONENT(std::shared_ptr<PgDb>, db);
+
     public:
         static std::shared_ptr<DatasetController>
         createShared(OATPP_COMPONENT(std::shared_ptr<ObjectMapper>, objectMapper)) {
@@ -234,14 +236,26 @@ namespace ender_label::controller {
             info->addResponse<Object<BaseResponseDto> >(Status::CODE_200, "application/json");
         }
 
-        ENDPOINT("GET", "/dataset/all", listAllDataset, AUTH_HEADER) {
+        ENDPOINT("GET", "/dataset/paginate", paginateAllDataset, AUTH_HEADER, QUERY(Int32, page), QUERY(Int32, size)) {
             AUTH
             OATPP_ASSERT_HTTP(USER->hasPerm("DATASET_LIST"), Status::CODE_403, "Permission denied.")
-            const auto resp = ArrayResponseDto<Object<data::SizedImageDatasetDto> >::createShared();
-            const auto dtos = dataset::ImageDataset::toDtoList(dataset::ImageDataset::getAll());
+            const auto resp = PaginationResponseDto<Object<data::SizedImageDatasetDto> >::createShared();
+            dataset::ImageDataset::checkPage(size, page);
+            const auto data_res = this->db->executeQuery(
+                "SELECT * FROM ender_label_img_dataset LIMIT :limit OFFSET :offset", {
+                    {"limit", size},
+                    {"offset", dataset::ImageDataset::getPaginationOffset(page, size)}
+                });
+            const auto count_res = this->db->executeQuery("SELECT count(id) FROM ender_label_img_dataset", {});
+            const auto ret = dataset::ImageDataset::paginate(data_res, count_res);
+            resp->page_num = page;
+            resp->page_size = size;
+            resp->page_total = std::get<1>(ret);
+            const auto raw_dtos = dataset::ImageDataset::toDtoList(std::get<0>(ret));
+            // const auto dtos = dataset::ImageDataset::toDtoList(dataset::ImageDataset::getAll());
             resp->data = {};
-            resp->data->resize(dtos->size(), nullptr);
-            for (auto it = dtos->begin(); it != dtos->end(); ++it) {
+            resp->data->resize(raw_dtos->size(), nullptr);
+            for (auto it = raw_dtos->begin(); it != raw_dtos->end(); ++it) {
                 const auto sized_dto = data::SizedImageDatasetDto::createShared();
                 const auto dto = *it;
                 if (dto->img_ids == nullptr) {
@@ -249,22 +263,52 @@ namespace ender_label::controller {
                 } else {
                     sized_dto->img_size = static_cast<int>(dto->img_ids->size());
                 }
-                //todo: anno size
                 sized_dto->anno_size = 0;
                 dto->img_ids = nullptr;
                 util::Util::copyToUpper(dto, sized_dto);
-                resp->data->at(it - dtos->begin()) = sized_dto;
+                resp->data->at(it - raw_dtos->begin()) = sized_dto;
             }
-            resp->size = resp->data->size();
             return createDtoResponse(Status::CODE_200, resp);
         }
 
-        ENDPOINT_INFO(listAllDataset) {
-            info->name = "列出所有数据集";
+        ENDPOINT_INFO(paginateAllDataset) {
+            info->name = "分页查询所有数据集";
             info->description = "需要权限DATASET_LIST。";
-            info->addResponse<Object<ArrayResponseDto<Object<data::ImageDatasetDto> > > >(
+            info->addResponse<Object<PaginationResponseDto<Object<data::ImageDatasetDto> > > >(
                 Status::CODE_200, "application/json");
         }
+
+        // ENDPOINT("GET", "/dataset/all", listAllDataset, AUTH_HEADER) {
+        //     AUTH
+        //     OATPP_ASSERT_HTTP(USER->hasPerm("DATASET_LIST"), Status::CODE_403, "Permission denied.")
+        //     const auto resp = ArrayResponseDto<Object<data::SizedImageDatasetDto> >::createShared();
+        //     const auto dtos = dataset::ImageDataset::toDtoList(dataset::ImageDataset::getAll());
+        //     resp->data = {};
+        //     resp->data->resize(dtos->size(), nullptr);
+        //     for (auto it = dtos->begin(); it != dtos->end(); ++it) {
+        //         const auto sized_dto = data::SizedImageDatasetDto::createShared();
+        //         const auto dto = *it;
+        //         if (dto->img_ids == nullptr) {
+        //             sized_dto->img_size = 0;
+        //         } else {
+        //             sized_dto->img_size = static_cast<int>(dto->img_ids->size());
+        //         }
+        //         //todo: anno size
+        //         sized_dto->anno_size = 0;
+        //         dto->img_ids = nullptr;
+        //         util::Util::copyToUpper(dto, sized_dto);
+        //         resp->data->at(it - dtos->begin()) = sized_dto;
+        //     }
+        //     resp->size = resp->data->size();
+        //     return createDtoResponse(Status::CODE_200, resp);
+        // }
+        //
+        // ENDPOINT_INFO(listAllDataset) {
+        //     info->name = "列出所有数据集";
+        //     info->description = "需要权限DATASET_LIST。";
+        //     info->addResponse<Object<ArrayResponseDto<Object<data::ImageDatasetDto> > > >(
+        //         Status::CODE_200, "application/json");
+        // }
 
         ENDPOINT("GET", "/dataset/ch", chDataset) {
         }
@@ -289,31 +333,31 @@ namespace ender_label::controller {
         //     info->description = "分页查询指定数据集下面的图片信息（不包含图片数据，只有图片各项基本信息）";
         // }
 
-        ENDPOINT("GET", "/dataset/{dataset_id}/image/all", getAllImage, PATH(Int32,dataset_id), AUTH_HEADER) {
-            AUTH
-            const auto dataset = dataset::ImageDataset::getById(dataset_id);
-            OATPP_ASSERT_HTTP(dataset != nullptr, Status::CODE_404, "Requested dataset not found")
-            const auto resp = ArrayResponseDto<Object<data::ImageDto> >::createShared();
-            resp->data = {};
-            if (dataset->getDto()->img_ids != nullptr) {
-                for (const auto &img_id: *dataset->getDto()->img_ids) {
-                    const auto img = dataset::Image::getById(img_id);
-                    if (img == nullptr) {
-                        OATPP_LOGE("DATASET", "Img with id %ld not found.", *img_id);
-                    }
-                    resp->data->emplace_back(img->getDto());
-                }
-            }
-            resp->size = resp->data->size();
-            return createDtoResponse(Status::CODE_200, resp);
-        }
-
-        ENDPOINT_INFO(getAllImage) {
-            info->name = "获取数据集图片基本信息";
-            info->description = "查询指定数据集下面所有的图片信息（不包含图片数据，只有图片各项基本信息）";
-            info->addResponse<Object<ArrayResponseDto<Object<
-                data::ImageDto> > > >(Status::CODE_200, "application/json");
-        }
+        // ENDPOINT("GET", "/dataset/{dataset_id}/image/all", getAllImage, PATH(Int32,dataset_id), AUTH_HEADER) {
+        //     AUTH
+        //     const auto dataset = dataset::ImageDataset::getById(dataset_id);
+        //     OATPP_ASSERT_HTTP(dataset != nullptr, Status::CODE_404, "Requested dataset not found")
+        //     const auto resp = ArrayResponseDto<Object<data::ImageDto> >::createShared();
+        //     resp->data = {};
+        //     if (dataset->getDto()->img_ids != nullptr) {
+        //         for (const auto &img_id: *dataset->getDto()->img_ids) {
+        //             const auto img = dataset::Image::getById(img_id);
+        //             if (img == nullptr) {
+        //                 OATPP_LOGE("DATASET", "Img with id %ld not found.", *img_id);
+        //             }
+        //             resp->data->emplace_back(img->getDto());
+        //         }
+        //     }
+        //     resp->size = resp->data->size();
+        //     return createDtoResponse(Status::CODE_200, resp);
+        // }
+        //
+        // ENDPOINT_INFO(getAllImage) {
+        //     info->name = "获取数据集图片基本信息";
+        //     info->description = "查询指定数据集下面所有的图片信息（不包含图片数据，只有图片各项基本信息）";
+        //     info->addResponse<Object<ArrayResponseDto<Object<
+        //         data::ImageDto> > > >(Status::CODE_200, "application/json");
+        // }
 
         ENDPOINT("GET", "/dataset/{dataset_id}/image/paginate", paginateImage, PATH(Int32,dataset_id),
                  QUERY(Int32, size), QUERY(Int32, page), AUTH_HEADER) {
@@ -619,23 +663,76 @@ namespace ender_label::controller {
             info->addResponse<Object<data::ImageDto> >(Status::CODE_200, "application/json");
         }
 
-        ENDPOINT("GET", "/dataset/{dataset_id}/task/all", getAllAnnoTask, PATH(Int32, dataset_id), AUTH_HEADER) {
+        ENDPOINT("GET", "/dataset/{dataset_id}/task/paginate", paginateAnnoTask, AUTH_HEADER,
+                 PATH(Int32, dataset_id), QUERY(Int32, size), QUERY(Int32, page), QUERY(Boolean, self)) {
             AUTH
             using namespace dataset::task;
             const auto dataset = dataset::ImageDataset::getById<dataset::ImageDataset>(dataset_id);
             OATPP_ASSERT_HTTP(dataset != nullptr, Status::CODE_404,
                               "Requested dataset[id:"+std::to_string(*dataset_id)+"] not found.")
-            const auto resp = ArrayResponseDto<Object<AnnotationTaskDto> >::createShared();
-            resp->data = BaseTask::toDtoList(BaseTask::getUserTasksInDataset(USER->getId(), dataset_id));
-            resp->size = resp->data->size();
+            BaseTask::checkPage(size, page);
+            const auto resp = PaginationResponseDto<Object<AnnotationTaskDto> >::createShared();
+            if (self) {
+                const auto data_res = this->db->executeQuery(
+                    "SELECT * FROM ender_label_annotation_task WHERE dataset_id = :dataset_id AND :user_id = ANY(user_ids) LIMIT :limit OFFSET :offset",
+                    {
+                        {"dataset_id", dataset_id},
+                        {"user_id", USER->getId()},
+                        {"limit", size},
+                        {"offset", BaseTask::getPaginationOffset(page, size)}
+                    });
+                const auto count_res = this->db->executeQuery(
+                    "SELECT count(id) FROM ender_label_annotation_task WHERE dataset_id = :dataset_id AND :user_id = ANY(user_ids)",
+                    {{"dataset_id", dataset_id}});
+                const auto ret = BaseTask::paginate(data_res, count_res);
+                resp->page_total = std::get<1>(ret);
+                resp->data = BaseTask::toDtoList(std::get<0>(ret));
+            } else {
+                const auto data_res = this->db->executeQuery(
+                    "SELECT * FROM ender_label_annotation_task WHERE dataset_id = :dataset_id LIMIT :limit OFFSET :offset",
+                    {
+                        {"dataset_id", dataset_id},
+                        {"limit", size},
+                        {"offset", BaseTask::getPaginationOffset(page, size)}
+                    });
+                const auto count_res = this->db->executeQuery(
+                    "SELECT count(id) FROM ender_label_annotation_task WHERE dataset_id = :dataset_id",
+                    {{"dataset_id", dataset_id}});
+                const auto ret = BaseTask::paginate(data_res, count_res);
+                resp->page_total = std::get<1>(ret);
+                resp->data = BaseTask::toDtoList(std::get<0>(ret));
+            }
+
+
+            resp->page_num = page;
+            resp->page_size = size;
+
             return createDtoResponse(Status::CODE_200, resp);
         }
 
-        ENDPOINT_INFO(getAllAnnoTask) {
-            info->description = "获取指定数据集下，和用户相关的所有标注任务。";
+        ENDPOINT_INFO(paginateAnnoTask) {
+            info->description = "分页查询指定数据集下，所有标注任务。如果self参数为true则只查询自己的任务，反之则查询数据集中所有的任务。";
             info->addResponse<Object<ArrayResponseDto<Object<dataset::task::AnnotationTaskDto> > > >(
                 Status::CODE_200, "application/json");
         }
+
+        // ENDPOINT("GET", "/dataset/{dataset_id}/task/all", getAllAnnoTask, PATH(Int32, dataset_id), AUTH_HEADER) {
+        //     AUTH
+        //     using namespace dataset::task;
+        //     const auto dataset = dataset::ImageDataset::getById<dataset::ImageDataset>(dataset_id);
+        //     OATPP_ASSERT_HTTP(dataset != nullptr, Status::CODE_404,
+        //                       "Requested dataset[id:"+std::to_string(*dataset_id)+"] not found.")
+        //     const auto resp = ArrayResponseDto<Object<AnnotationTaskDto> >::createShared();
+        //     resp->data = BaseTask::toDtoList(BaseTask::getUserTasksInDataset(USER->getId(), dataset_id));
+        //     resp->size = resp->data->size();
+        //     return createDtoResponse(Status::CODE_200, resp);
+        // }
+        //
+        // ENDPOINT_INFO(getAllAnnoTask) {
+        //     info->description = "获取指定数据集下，和用户相关的所有标注任务。";
+        //     info->addResponse<Object<ArrayResponseDto<Object<dataset::task::AnnotationTaskDto> > > >(
+        //         Status::CODE_200, "application/json");
+        // }
 
         ENDPOINT("GET", "/dataset/task/{task_id}/image/info/all", getAllImgInfoInTask, AUTH_HEADER,
                  PATH(Int32, task_id)) {
