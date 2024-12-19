@@ -712,7 +712,7 @@ namespace ender_label::controller {
 
         ENDPOINT_INFO(paginateAnnoTask) {
             info->description = "分页查询指定数据集下，所有标注任务。如果self参数为true则只查询自己的任务，反之则查询数据集中所有的任务。";
-            info->addResponse<Object<ArrayResponseDto<Object<dataset::task::AnnotationTaskDto> > > >(
+            info->addResponse<Object<PaginationResponseDto<Object<dataset::task::AnnotationTaskDto> > > >(
                 Status::CODE_200, "application/json");
         }
 
