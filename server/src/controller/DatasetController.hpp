@@ -683,7 +683,7 @@ namespace ender_label::controller {
                     });
                 const auto count_res = this->db->executeQuery(
                     "SELECT count(id) FROM ender_label_annotation_task WHERE dataset_id = :dataset_id AND :user_id = ANY(user_ids)",
-                    {{"dataset_id", dataset_id}});
+                    {{"dataset_id", dataset_id},{"user_id", USER->getId()}});
                 const auto ret = BaseTask::paginate(data_res, count_res);
                 resp->page_total = std::get<1>(ret);
                 resp->data = BaseTask::toDtoList(std::get<0>(ret));
