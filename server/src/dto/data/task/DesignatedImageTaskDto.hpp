@@ -10,9 +10,9 @@ namespace ender_label::dto::data::task {
     class DesignatedImageTaskDto final : public AnnotationTaskDataDto {
         DTO_INIT(DesignatedImageTaskDto, AnnotationTaskDataDto)
 
-        DTO_FIELD(UnorderedSet<Int64>, img_ids);
+        DTO_FIELD(UnorderedSet<Int64>, img_ids) = {};
 
-        DTO_FIELD(UnorderedSet<Int64>, target_img_ids);
+        DTO_FIELD(UnorderedSet<Int64>, target_img_ids) = {};
     };
 }
 

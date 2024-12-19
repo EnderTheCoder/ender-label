@@ -668,16 +668,37 @@ namespace ender_label::controller {
                 Status::CODE_200, "application/json");
         }
 
+        ENDPOINT("POST", "/dataset/{dataset_id}/task/create", createDefaultTask, AUTH_HEADER, PATH(Int32, dataset_id)) {
+            AUTH
+            auto resp = SimpleDataResponseDto<Object<data::task::AnnotationTaskDto> >::createShared();
+            const auto dataset = dataset::ImageDataset::getById(dataset_id);
+            OATPP_ASSERT_HTTP(dataset!= nullptr, Status::CODE_404, "Requested dataset not found.")
+            const OATPP_COMPONENT(std::shared_ptr<oatpp::data::mapping::ObjectMapper>, mapper);
+            const auto n_task_dto = data::task::AnnotationTaskDto::createShared();
+            const auto n_task_data_dto = data::task::DesignatedImageTaskDto::createShared();
+            n_task_data_dto->target_img_ids = dataset->getDto()->img_ids;
+            n_task_data_dto->config = data::task::AnnotationTaskConfigDto::createShared();
+            n_task_dto->raw_json = mapper->writeToString(n_task_data_dto);
+            n_task_dto->dataset_id = dataset_id;
+            n_task_dto->name = "default";
+            n_task_dto->progress = 0.0;
+            n_task_dto->state = false;
+            n_task_dto->anno_task_type = data::task::AnnoTaskType::designated_image;
+            n_task_dto->user_ids = {USER->getId()};
+            const auto task = dataset::task::DesignatedImageTask::createSharedR(n_task_dto);
+            task->write();
+            return createDtoResponse(Status::CODE_200, resp);
+        }
+
         ENDPOINT("GET", "/dataset/task/{task_id}/image/id/all", getAllImgIdInTask, AUTH_HEADER,
                  PATH(Int32, task_id)) {
             AUTH
             using namespace dataset::task;
             const auto task = BaseTask::getById<BaseTask>(task_id);
-            OATPP_ASSERT_HTTP(task != nullptr, Status::CODE_404, "Requested task not foumd.")
+            OATPP_ASSERT_HTTP(task != nullptr, Status::CODE_404, "Requested task not found.")
             Vector<Object<data::ImageDto> > img_dtos = nullptr;
             const auto resp = ArrayResponseDto<Int64>::createShared();
-            const auto task_dto = task->getDto();
-            switch (*task_dto->anno_task_type) {
+            switch (const auto task_dto = task->getDto(); *task_dto->anno_task_type) {
                 case AnnoTaskType::designated_image: {
                     const auto d_task = DesignatedImageTask::createShared<DesignatedImageTask>(task->getDto());
                     img_dtos = d_task->getImages();

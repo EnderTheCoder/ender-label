@@ -84,7 +84,7 @@ namespace ender_label::component {
         /**
          *  Create ObjectMapper component to serialize/deserialize DTOs in Contoller's API
          */
-        OATPP_CREATE_COMPONENT(std::shared_ptr<oatpp::data::mapping::ObjectMapper>, apiObjectMapper)([] {
+        OATPP_CREATE_COMPONENT(std::shared_ptr<oatpp::data::mapping::ObjectMapper>, mapper)([] {
             auto mapper = oatpp::parser::json::mapping::ObjectMapper::createShared();
             mapper->getSerializer()->getConfig()->useBeautifier = false;
             mapper->getSerializer()->getConfig()->includeNullFields = true;

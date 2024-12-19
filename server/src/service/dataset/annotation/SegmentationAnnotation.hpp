@@ -75,10 +75,13 @@ namespace ender_label::service::dataset::annotation {
             std::vector<std::string> lines;
             split(lines, source, boost::is_any_of("\n"));
             for (const auto &line: lines) {
-                if (line == "") continue;
+                if (line.empty()) continue;
                 const auto polygon_dto = SegmentationDto::PolygonDto::createShared();
                 std::vector<std::string> nums;
                 split(nums, line, boost::is_any_of(" "));
+                if (nums.back().empty()) {
+                    nums.erase(--nums.end());
+                }
                 auto cls_id = 0;
                 try {
                     cls_id = std::stoi(nums.front());
