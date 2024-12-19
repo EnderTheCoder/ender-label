@@ -782,36 +782,36 @@ namespace ender_label::controller {
                 Status::CODE_200, "application/json");
         }
 
-        ENDPOINT("GET", "/dataset/task/{task_id}/image/info/all", getAllImgInfoInTask, AUTH_HEADER,
-                 PATH(Int32, task_id)) {
-            AUTH
-            using namespace dataset::task;
-            const auto task = BaseTask::getById<BaseTask>(task_id);
-            const auto resp = ArrayResponseDto<Object<data::ImageDto> >::createShared();
-            switch (*task->getDto()->anno_task_type) {
-                case AnnoTaskType::designated_image: {
-                    const auto d_task = DesignatedImageTask::createShared<DesignatedImageTask>(task->getDto());
-                    resp->data = d_task->getImages();
-                    break;
-                }
-                case AnnoTaskType::quantity: {
-                    const auto q_task = QuantityTask::createShared<QuantityTask>(task->getDto());
-                    resp->data = q_task->getImages();
-                    break;
-                }
-                default:
-                    break;
-            }
-            resp->size = resp->data->size();
-            return createDtoResponse(Status::CODE_200, resp);
-        }
-
-        ENDPOINT_INFO(getAllImgInfoInTask) {
-            info->name = "获取任务图片";
-            info->description = "获取指定任务下，所有的需要标注的图片的图片附属信息。";
-            info->addResponse<Object<ArrayResponseDto<Object<data::ImageDto> > > >(
-                Status::CODE_200, "application/json");
-        }
+        // ENDPOINT("GET", "/dataset/task/{task_id}/image/info/all", getAllImgInfoInTask, AUTH_HEADER,
+        //          PATH(Int32, task_id)) {
+        //     AUTH
+        //     using namespace dataset::task;
+        //     const auto task = BaseTask::getById<BaseTask>(task_id);
+        //     const auto resp = ArrayResponseDto<Object<data::ImageDto> >::createShared();
+        //     switch (*task->getDto()->anno_task_type) {
+        //         case AnnoTaskType::designated_image: {
+        //             const auto d_task = DesignatedImageTask::createShared<DesignatedImageTask>(task->getDto());
+        //             resp->data = d_task->getImages();
+        //             break;
+        //         }
+        //         case AnnoTaskType::quantity: {
+        //             const auto q_task = QuantityTask::createShared<QuantityTask>(task->getDto());
+        //             resp->data = q_task->getImages();
+        //             break;
+        //         }
+        //         default:
+        //             break;
+        //     }
+        //     resp->size = resp->data->size();
+        //     return createDtoResponse(Status::CODE_200, resp);
+        // }
+        //
+        // ENDPOINT_INFO(getAllImgInfoInTask) {
+        //     info->name = "获取任务图片";
+        //     info->description = "获取指定任务下，所有的需要标注的图片的图片附属信息。";
+        //     info->addResponse<Object<ArrayResponseDto<Object<data::ImageDto> > > >(
+        //         Status::CODE_200, "application/json");
+        // }
 
         ENDPOINT("POST", "/dataset/{dataset_id}/task/create", createDefaultTask, AUTH_HEADER, PATH(Int32, dataset_id)) {
             AUTH
