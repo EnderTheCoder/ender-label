@@ -216,7 +216,9 @@ namespace ender_label::service::dataset::task {
         auto getImageIds() -> Vector<Int64> override {
             const auto task_data_dto = this->readTaskDto();
             const auto ids = Vector<Int64>::createShared();
-            std::copy(task_data_dto->target_img_ids->begin(), task_data_dto->target_img_ids->end(), ids->begin());
+            if (task_data_dto->target_img_ids != nullptr) {
+                std::copy(task_data_dto->target_img_ids->begin(), task_data_dto->target_img_ids->end(), ids->begin());
+            }
             return ids;
         }
 
