@@ -734,6 +734,54 @@ namespace ender_label::controller {
         //         Status::CODE_200, "application/json");
         // }
 
+        ENDPOINT("GET", "/dataset/task/{task_id}/image/info/paginate", paginateImgInfoInTask, AUTH_HEADER,
+                 PATH(Int32, task_id), QUERY(Int32, page), QUERY(Int32, size)) {
+            AUTH
+            using namespace dataset::task;
+            const auto resp = PaginationResponseDto<Object<data::ImageDto> >::createShared();
+            const auto task = BaseTask::getById<BaseTask>(task_id);
+            OATPP_ASSERT_HTTP(task != nullptr, Status::CODE_404, "Requested task not found.")
+            auto ids = Vector<Int64>::createShared();
+            switch (*task->getDto()->anno_task_type) {
+                case AnnoTaskType::designated_image: {
+                    const auto d_task = DesignatedImageTask::createSharedR(task->getDto());
+                    ids = d_task->getImageIds();
+                    break;
+                }
+                case AnnoTaskType::quantity: {
+                    const auto q_task = QuantityTask::createSharedR(task->getDto());
+                    ids = q_task->getImageIds();
+                    break;
+                }
+                default:
+                    break;
+            }
+            auto image_info_dtos = Vector<Object<data::ImageDto> >::createShared();
+            const auto offset = BaseTask::getPaginationOffset(page, size);
+            if (auto it_begin = ids->begin() + offset; it_begin < ids->end()) {
+                for (; it_begin != ids->end(); ++it_begin) {
+                    auto img = dataset::Image::getById(*it_begin);
+                    if (img == nullptr) {
+                        OATPP_LOGE("TASK", "Image[id:%lld] in task[id:%d] not found", **it_begin, *task_id)
+                        continue;
+                    }
+                    image_info_dtos->push_back(img->getDto());
+                }
+            }
+            resp->data = image_info_dtos;
+            resp->page_num = page;
+            resp->page_size = size;
+            resp->page_total = image_info_dtos->size();
+            return createDtoResponse(Status::CODE_200, resp);
+        }
+
+        ENDPOINT_INFO(paginateImgInfoInTask) {
+            info->name = "分页查询任务图片";
+            info->description = "分页查询指定任务下，所有的需要标注的图片的图片附属信息。";
+            info->addResponse<Object<PaginationResponseDto<Object<data::ImageDto> > > >(
+                Status::CODE_200, "application/json");
+        }
+
         ENDPOINT("GET", "/dataset/task/{task_id}/image/info/all", getAllImgInfoInTask, AUTH_HEADER,
                  PATH(Int32, task_id)) {
             AUTH

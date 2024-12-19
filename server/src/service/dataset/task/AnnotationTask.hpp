@@ -114,6 +114,8 @@ namespace ender_label::service::dataset::task {
             return getList(query, wrapped);
         }
 
+        virtual auto getImageIds() -> Vector<Int64> = 0;
+
         virtual auto getImages() -> Vector<Object<data::ImageDto> > = 0;
 
         auto getLogsWithImg(const auto img_id) {
@@ -158,6 +160,10 @@ namespace ender_label::service::dataset::task {
 
         static auto createSharedR(const Object<AnnotationTaskDto> &dto) {
             return std::make_shared<QuantityTask>(dto);
+        }
+
+        auto getImageIds() -> Vector<Int64> override {
+            return {};
         }
 
         auto getImages() -> Vector<Object<data::ImageDto> > override {
@@ -205,6 +211,13 @@ namespace ender_label::service::dataset::task {
 
         static auto createSharedR(const Object<AnnotationTaskDto> &dto) {
             return std::make_shared<DesignatedImageTask>(dto);
+        }
+
+        auto getImageIds() -> Vector<Int64> override {
+            const auto task_data_dto = this->readTaskDto();
+            const auto ids = Vector<Int64>::createShared();
+            std::copy(task_data_dto->target_img_ids->begin(), task_data_dto->target_img_ids->end(), ids->begin());
+            return ids;
         }
 
         auto getImages() -> Vector<Object<data::ImageDto> > override {
