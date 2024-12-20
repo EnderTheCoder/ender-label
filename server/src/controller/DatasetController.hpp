@@ -771,7 +771,7 @@ namespace ender_label::controller {
             resp->data = image_info_dtos;
             resp->page_num = page;
             resp->page_size = size;
-            resp->page_total = image_info_dtos->size();
+            resp->page_total = ids->size();
             return createDtoResponse(Status::CODE_200, resp);
         }
 
