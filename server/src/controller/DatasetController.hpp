@@ -759,10 +759,10 @@ namespace ender_label::controller {
             auto image_info_dtos = Vector<Object<data::ImageDto> >::createShared();
             const auto offset = BaseTask::getPaginationOffset(page, size);
             if (auto it_begin = ids->begin() + offset; it_begin < ids->end()) {
-                for (; it_begin != ids->end() and it_begin - ids->begin() != size ; ++it_begin) {
-                    auto img = dataset::Image::getById(*it_begin);
+                for (auto it = it_begin; it != ids->end() and it - it_begin != size ; ++it) {
+                    auto img = dataset::Image::getById(*it);
                     if (img == nullptr) {
-                        OATPP_LOGE("TASK", "Image[id:%lld] in task[id:%d] not found", **it_begin, *task_id)
+                        OATPP_LOGE("TASK", "Image[id:%lld] in task[id:%d] not found", **it, *task_id)
                         continue;
                     }
                     image_info_dtos->push_back(img->getDto());
