@@ -32,9 +32,9 @@ namespace ender_label::component {
                 response->putHeader(key.toString(), val.toString());
             }
             if (error->code >= 500 && error->code < 600) {
-                OATPP_LOGE("CODE-" + std::to_string(error->code), error->message->c_str())
+                OATPP_LOGE("Exception","CODE-%d: %s", *error->code , error->message->c_str())
             } else {
-                OATPP_LOGW("CODE-" + std::to_string(error->code), error->message->c_str())
+                OATPP_LOGW("Exception","CODE-%d: %s", *error->code , error->message->c_str())
             }
 
             if (error->code == 500 && config->config_type == "production") {

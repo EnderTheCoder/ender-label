@@ -310,11 +310,11 @@ namespace ender_label::controller {
         //         Status::CODE_200, "application/json");
         // }
 
-        ENDPOINT("GET", "/dataset/ch", chDataset) {
-        }
-
-        ENDPOINT("GET", "/dataset/info", getDataset) {
-        }
+        // ENDPOINT("GET", "/dataset/ch", chDataset) {
+        // }
+        //
+        // ENDPOINT("GET", "/dataset/info", getDataset) {
+        // }
 
         // ENDPOINT("GET", "/dataset/{dataset_id}/image/list", listImage, QUERY(Int32,page), QUERY(Int32, size),
         //          AUTH_HEADER) {
@@ -762,7 +762,7 @@ namespace ender_label::controller {
                 for (auto it = it_begin; it != ids->end() and it - it_begin != size ; ++it) {
                     auto img = dataset::Image::getById(*it);
                     if (img == nullptr) {
-                        OATPP_LOGE("TASK", "Image[id:%lld] in task[id:%d] not found", **it, *task_id)
+                        OATPP_LOGE("TASK", "Image[id:%ld] in task[id:%d] not found", **it, *task_id)
                         continue;
                     }
                     image_info_dtos->push_back(img->getDto());
