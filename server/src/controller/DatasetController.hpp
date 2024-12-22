@@ -238,7 +238,7 @@ namespace ender_label::controller {
 
         ENDPOINT("GET", "/dataset/paginate", paginateAllDataset, AUTH_HEADER, QUERY(Int32, page), QUERY(Int32, size)) {
             AUTH
-            OATPP_ASSERT_HTTP(USER->hasPerm("DATASET_LIST"), Status::CODE_403, "Permission denied.")
+            OATPP_ASSERT_HTTP(USER->hasPerm("DATASET_LIST"), Status::CODE_403, "Permission denied: not allowed to list public datasets.")
             const auto resp = PaginationResponseDto<Object<data::SizedImageDatasetDto> >::createShared();
             dataset::ImageDataset::checkPage(size, page);
             const auto data_res = this->db->executeQuery(

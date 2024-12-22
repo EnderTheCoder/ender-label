@@ -23,6 +23,10 @@ ALTER TABLE ender_label_permission
 
 INSERT INTO ender_label_permission(key, parent_id, "desc")
 VALUES ('ROOT', null, 'ROOT');
+
+INSERT INTO ender_label_permission(key, parent_id, "desc")
+VALUES ('DATASET_LIST', 1, 'List public datasets');
+
 INSERT INTO ender_label_user(USERNAME, EMAIL, PASSWORD, TOKEN, PERMISSION_IDS)
 VALUES ('root', 'root@test.com', '123456', null, ARRAY [1]);
 
