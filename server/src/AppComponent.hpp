@@ -71,7 +71,7 @@ namespace ender_label::component {
                 if (not(exists(storage_root) and is_directory(storage_root))) {
                     throw std::runtime_error("Invalid storage path: not a directory or not exists.");
                 }
-                auto sub_dirs = std::array{"datasets"};
+                auto sub_dirs = std::array{"datasets", "thumbnails"};
                 std::ranges::for_each(sub_dirs, [&storage_root](auto &x) {
                     if (not exists(storage_root / x)) boost::filesystem::create_directory(storage_root / x);
                 });

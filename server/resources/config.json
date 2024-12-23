@@ -12,5 +12,15 @@
     "static_root": "/data0/remote_projects/ender-label/web/dist"
   },
   "production@default": {
+    "host": "::",
+    "port": 24778,
+    "migrations": "../sql",
+    "db": "postgresql://ender_label:ender_label_4778_xeon@localhost:5432/ender_label",
+    "resources": "../resources",
+    "storage": "../data",
+    "redis": "tcp://127.0.0.1:6379",
+    "cache_time": 120,
+    "callback": "https://test.ender.cool",
+    "static_root": "/data0/remote_projects/ender-label/web/dist"
   }
 }
