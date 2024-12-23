@@ -243,14 +243,14 @@ namespace ender_label::controller {
 
             const auto resp = PaginationResponseDto<Object<data::SizedImageDatasetDto> >::createShared();
             dataset::ImageDataset::checkPage(size, page);
-            std::shared_ptr<postgresql::QueryResult> data_res, count_res;
+            std::shared_ptr<orm::QueryResult> data_res, count_res;
             if (USER->hasPerm("DATASET_LIST")) {
                 data_res = this->db->executeQuery(
                     "SELECT * FROM ender_label_img_dataset LIMIT :limit OFFSET :offset", {
                         {"limit", size},
                         {"offset", dataset::ImageDataset::getPaginationOffset(page, size)}
                     });
-                 count_res = this->db->executeQuery("SELECT count(id) FROM ender_label_img_dataset", {});
+                count_res = this->db->executeQuery("SELECT count(id) FROM ender_label_img_dataset", {});
             } else {
                 data_res = this->db->executeQuery(
                     "SELECT * FROM ender_label_img_dataset WHERE owner_id = :owner_id LIMIT :limit OFFSET :offset", {
@@ -258,11 +258,9 @@ namespace ender_label::controller {
                         {"offset", dataset::ImageDataset::getPaginationOffset(page, size)},
                         {"owner_id", USER->getId()}
                     });
-
                 count_res = this->db->executeQuery(
-                    "SELECT count(id) FROM ender_label_img_dataset WHERE owner_id = :owner_id", {
-                        {"owner_id", USER->getId()}
-                    });
+                    "SELECT count(id) FROM ender_label_img_dataset WHERE owner_id = :owner_id ",
+                    {{"owner_id", USER->getId()}});
             }
             const auto ret = dataset::ImageDataset::paginate(data_res, count_res);
             resp->page_num = page;
