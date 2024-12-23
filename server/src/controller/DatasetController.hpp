@@ -50,7 +50,9 @@ namespace ender_label::controller {
             REQUEST_PARAM_CHECK(dto->name)
             OATPP_ASSERT_HTTP(USER->hasPerm("DATASET_CREATE"), Status::CODE_403, "Permission denied.")
             const auto resp = SimpleDataResponseDto<Object<data::ImageDatasetDto> >::createShared();
-            dto->owner_id = USER->getId();
+            if (not USER->hasPerm("ROOT") or dto->owner_id == nullptr) {
+                dto->owner_id = USER->getId();
+            }
             const auto dataset = dataset::ImageDataset::createShared<dataset::ImageDataset>(dto);
             dataset->write();
             dataset->initStorage();
@@ -238,15 +240,30 @@ namespace ender_label::controller {
 
         ENDPOINT("GET", "/dataset/paginate", paginateAllDataset, AUTH_HEADER, QUERY(Int32, page), QUERY(Int32, size)) {
             AUTH
-            OATPP_ASSERT_HTTP(USER->hasPerm("DATASET_LIST"), Status::CODE_403, "Permission denied: not allowed to list public datasets.")
+
             const auto resp = PaginationResponseDto<Object<data::SizedImageDatasetDto> >::createShared();
             dataset::ImageDataset::checkPage(size, page);
-            const auto data_res = this->db->executeQuery(
-                "SELECT * FROM ender_label_img_dataset LIMIT :limit OFFSET :offset", {
-                    {"limit", size},
-                    {"offset", dataset::ImageDataset::getPaginationOffset(page, size)}
-                });
-            const auto count_res = this->db->executeQuery("SELECT count(id) FROM ender_label_img_dataset", {});
+            std::shared_ptr<postgresql::QueryResult> data_res, count_res;
+            if (USER->hasPerm("DATASET_LIST")) {
+                data_res = this->db->executeQuery(
+                    "SELECT * FROM ender_label_img_dataset LIMIT :limit OFFSET :offset", {
+                        {"limit", size},
+                        {"offset", dataset::ImageDataset::getPaginationOffset(page, size)}
+                    });
+                 count_res = this->db->executeQuery("SELECT count(id) FROM ender_label_img_dataset", {});
+            } else {
+                data_res = this->db->executeQuery(
+                    "SELECT * FROM ender_label_img_dataset WHERE owner_id = :owner_id LIMIT :limit OFFSET :offset", {
+                        {"limit", size},
+                        {"offset", dataset::ImageDataset::getPaginationOffset(page, size)},
+                        {"owner_id", USER->getId()}
+                    });
+
+                count_res = this->db->executeQuery(
+                    "SELECT count(id) FROM ender_label_img_dataset WHERE owner_id = :owner_id", {
+                        {"owner_id", USER->getId()}
+                    });
+            }
             const auto ret = dataset::ImageDataset::paginate(data_res, count_res);
             resp->page_num = page;
             resp->page_size = size;
@@ -683,7 +700,7 @@ namespace ender_label::controller {
                     });
                 const auto count_res = this->db->executeQuery(
                     "SELECT count(id) FROM ender_label_annotation_task WHERE dataset_id = :dataset_id AND :user_id = ANY(user_ids)",
-                    {{"dataset_id", dataset_id},{"user_id", USER->getId()}});
+                    {{"dataset_id", dataset_id}, {"user_id", USER->getId()}});
                 const auto ret = BaseTask::paginate(data_res, count_res);
                 resp->page_total = std::get<1>(ret);
                 resp->data = BaseTask::toDtoList(std::get<0>(ret));
@@ -759,7 +776,7 @@ namespace ender_label::controller {
             auto image_info_dtos = Vector<Object<data::ImageDto> >::createShared();
             const auto offset = BaseTask::getPaginationOffset(page, size);
             if (auto it_begin = ids->begin() + offset; it_begin < ids->end()) {
-                for (auto it = it_begin; it != ids->end() and it - it_begin != size ; ++it) {
+                for (auto it = it_begin; it != ids->end() and it - it_begin != size; ++it) {
                     auto img = dataset::Image::getById(*it);
                     if (img == nullptr) {
                         OATPP_LOGE("TASK", "Image[id:%ld] in task[id:%d] not found", **it, *task_id)

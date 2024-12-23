@@ -41,7 +41,6 @@ add_definitions(
         -DOATPP_SWAGGER_RES_PATH="${oatpp-swagger_INCLUDE_DIRS}../bin/oatpp-swagger/res"
 
         -DVERSION="${VERSION}"
-
 )
 
 add_executable(${project_name}-exe

@@ -188,6 +188,31 @@ namespace ender_label::controller {
             info->addResponse<Object<SimpleDataResponseDto<Object<data::UserDto> > > >(
                 Status::CODE_200, "application/json");
         }
+
+        ENDPOINT("GET", "/user/search", searchUser, AUTH_HEADER, QUERY(String, keyword)) {
+            AUTH
+            const OATPP_COMPONENT(std::shared_ptr<PgDb>, db);
+            const auto resp = ArrayResponseDto<Object<data::UserDto> >::createShared();
+            std::stringstream ss;
+            ss << "SELECT * FROM " << user::User::getTableName() << " WHERE username like concat(:username, '%');";
+            const auto res = db->executeQuery(ss.str(), {
+                                                  {"username", keyword}
+                                              });
+            resp->data = user::User::toDtoList(user::User::getList(res));
+            resp->size = resp->data->size();
+            std::for_each(resp->data->begin(), resp->data->end(), [](auto &x) {
+                x->password = nullptr;
+                x->token = nullptr;
+            });
+            return createDtoResponse(Status::CODE_200, resp);
+        }
+
+        ENDPOINT_INFO(searchUser) {
+            info->name = "搜索用户";
+            info->description = "根据用户名搜索用户。";
+            info->addResponse<Object<ArrayResponseDto<Object<data::UserDto> > > >(
+                Status::CODE_200, "application/json");
+        }
     };
 }
 

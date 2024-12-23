@@ -31,7 +31,6 @@ namespace ender_label::dto::data {
         DTO_FIELD(String, password);
         DTO_FIELD_INFO(password) {
             info->description = "用户的密码";
-            info->required = true;
         }
 
         DTO_FIELD(String, token);
