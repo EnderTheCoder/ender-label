@@ -147,7 +147,8 @@ namespace ender_label::controller {
             const auto resp = BaseResponseDto::createShared();
             const auto dataset = dataset::ImageDataset::getById<dataset::ImageDataset>(dataset_id);
             OATPP_ASSERT_HTTP(dataset != nullptr, Status::CODE_404, "Dataset does not exist.")
-            OATPP_ASSERT_HTTP(USER->hasPerm("DATASET_READ_["+std::to_string(dataset_id)+"]"), Status::CODE_200,
+            OATPP_ASSERT_HTTP(USER->hasPerm("DATASET_READ_["+std::to_string(dataset_id)+"]") or
+                              dataset->getDto()->owner_id == USER->getId(), Status::CODE_200,
                               "Permission denied.")
             OATPP_COMPONENT(std::shared_ptr<processor::ExportProcessor>, export_processor);
             OATPP_ASSERT_HTTP(not export_processor->getIsDatasetExporting(dataset_id), Status::CODE_409,
