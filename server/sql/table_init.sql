@@ -71,6 +71,7 @@ create table if not exists ender_label_annotation_class
 create table if not exists ender_label_annotation_task
 (
     id             serial primary key,
+    name           text,
     user_ids       int4[],
     dataset_id     int4,
     raw_json       text,

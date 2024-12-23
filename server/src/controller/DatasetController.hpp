@@ -631,14 +631,16 @@ namespace ender_label::controller {
             const auto thumbnail_path = processor::BackgroundImageProcessor::imgThumbnailPath(
                 img->getDto()->md5_hash_32);
             auto mat = cv::Mat{};
+            String content;
             if (exists(thumbnail_path)) {
-                mat = cv::imread(thumbnail_path);
+                content = String::loadFromFile(thumbnail_path.c_str());
             } else {
                 mat = img->readCvImgFromDisk();
+                std::vector<uchar> buffer;
+                imencode(".png", mat, buffer);
+                content = std::string(buffer.begin(), buffer.end());
             }
-            std::vector<uchar> buffer;
-            imencode(".png", mat, buffer);
-            auto resp = createResponse(Status::CODE_200, std::string(buffer.begin(), buffer.end()));
+            auto resp = createResponse(Status::CODE_200, content);
             resp->putHeader("Content-Type", "image/png");
             return resp;
         }
@@ -651,17 +653,17 @@ namespace ender_label::controller {
         ENDPOINT("GET", "/dataset/image/{image_id}/source", getImage, PATH(Int64, image_id)) {
             const auto img = dataset::Image::getById<dataset::Image>(image_id);
             OATPP_ASSERT_HTTP(img != nullptr, Status::CODE_404, "Requested image does not exist.")
-            auto mat = img->readCvImgFromDisk();
-            std::vector<uchar> buffer;
-            imencode(".png", mat, buffer);
-            auto resp = createResponse(Status::CODE_200, std::string(buffer.begin(), buffer.end()));
-            resp->putHeader("Content-Type", "image/png");
+            const auto path = std::filesystem::path(img->getDto()->relative_path);
+            auto ext = path.extension().string().substr(1);
+            boost::algorithm::to_lower(ext);
+            auto resp = createResponse(Status::CODE_200, String::loadFromFile(path.c_str()));
+            resp->putHeader("Content-Type", "image/" + ext);
             return resp;
         }
 
         ENDPOINT_INFO(getImage) {
             info->description = "获取指定图片的原始图，格式为png，不需要传入token。";
-            info->addResponse<String>(Status::CODE_200, "image/png");
+            info->addResponse<String>(Status::CODE_200, "image");
         }
 
         ENDPOINT("GET", "/dataset/image/{image_id}/info", getImageInfo, PATH(Int64, image_id), AUTH_HEADER) {
@@ -830,7 +832,7 @@ namespace ender_label::controller {
 
         ENDPOINT("POST", "/dataset/{dataset_id}/task/create", createDefaultTask, AUTH_HEADER, PATH(Int32, dataset_id)) {
             AUTH
-            auto resp = SimpleDataResponseDto<Object<data::task::AnnotationTaskDto> >::createShared();
+            const auto resp = SimpleDataResponseDto<Object<data::task::AnnotationTaskDto> >::createShared();
             const auto dataset = dataset::ImageDataset::getById(dataset_id);
             OATPP_ASSERT_HTTP(dataset!= nullptr, Status::CODE_404, "Requested dataset not found.")
             const OATPP_COMPONENT(std::shared_ptr<oatpp::data::mapping::ObjectMapper>, mapper);
@@ -843,9 +845,9 @@ namespace ender_label::controller {
             n_task_dto->name = "default";
             n_task_dto->progress = 0.0;
             n_task_dto->state = false;
-            n_task_dto->anno_task_type = data::task::AnnoTaskType::designated_image;
+            n_task_dto->anno_task_type = nullptr;
             n_task_dto->user_ids = {USER->getId()};
-            const auto task = dataset::task::DesignatedImageTask::createSharedR(n_task_dto);
+            const auto task = dataset::task::DesignatedImageTask::createShared(n_task_dto);
             task->write();
             return createDtoResponse(Status::CODE_200, resp);
         }
