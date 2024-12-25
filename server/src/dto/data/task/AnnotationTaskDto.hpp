@@ -17,8 +17,14 @@
 
 namespace ender_label::dto::data::task {
     ENUM(AnnoTaskType, v_int32,
-         VALUE(designated_image, 0),
-         VALUE(quantity, 1))
+         VALUE(designated_image, 0, "designated_image"),
+         VALUE(quantity, 1, "quantity"))
+
+    ENUM(Function, v_int32,
+         VALUE(segment,0,"segment"),
+         VALUE(pose,1,"pose"),
+         VALUE(detect,2,"detect"),
+         VALUE(classify,3,"classify"))
 
     class AnnotationTaskDto : public oatpp::DTO {
         DTO_INIT(AnnotationTaskDto, DTO)
@@ -68,6 +74,12 @@ namespace ender_label::dto::data::task {
 
         DTO_FIELD_INFO(anno_task_type) {
             info->description = "标注任务类型，代表任务是以何种方式计量完成";
+        }
+
+        DTO_FIELD(Enum<Function>::AsString, anno_function);
+
+        DTO_FIELD_INFO(anno_function) {
+            info->description = "标注任务的功能";
         }
     };
 
