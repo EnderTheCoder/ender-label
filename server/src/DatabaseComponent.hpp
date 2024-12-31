@@ -25,8 +25,8 @@ namespace ender_label::component {
 
             /* Create database-specific ConnectionPool */
             auto connectionPool = oatpp::postgresql::ConnectionPool::createShared(connectionProvider,
-                                                                                  1000 /* max-connections */,
-                                                                                  std::chrono::seconds(60) /* connection TTL */);
+                                                                                  10000 /* max-connections */,
+                                                                                  std::chrono::seconds(120) /* connection TTL */);
 
             /* Create database-specific Executor */
             auto executor = std::make_shared<oatpp::postgresql::Executor>(connectionPool);

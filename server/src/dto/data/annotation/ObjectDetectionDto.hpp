@@ -6,10 +6,6 @@
 #define BBOXDTO_HPP
 
 
-
-
-
-
 #include "oatpp/core/macro/codegen.hpp"
 #include "oatpp/core/Types.hpp"
 
@@ -17,15 +13,15 @@
 
 namespace ender_label::dto::data::annotation {
     class ObjectDetectionDto : public oatpp::DTO {
-    private:
+        public:
         class BoundingDto : public oatpp::DTO {
+        public:
             DTO_INIT(BoundingDto, DTO)
 
             DTO_FIELD(Int32, cls_id);
 
             DTO_FIELD(List<Float64>, normalized_xyxy);
         };
-    public:
 
         DTO_INIT(ObjectDetectionDto, DTO)
 

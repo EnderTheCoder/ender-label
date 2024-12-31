@@ -86,7 +86,7 @@ namespace ender_label::service::dataset {
             if (n_dto->img_ids == nullptr) {
                 n_dto->img_ids = {};
             }
-            boost::asio::thread_pool pool(32);
+            boost::asio::thread_pool pool(4);
             std::mutex set_lck;
             OATPP_LOGI("DATASET", "Start to import images/annotations for dataset %d", *this->getId());
             for (const auto &img_path: img_paths) {
@@ -171,7 +171,7 @@ namespace ender_label::service::dataset {
                 create_directory(image_root);
             }
 
-            boost::asio::thread_pool anno_pool(16);
+            boost::asio::thread_pool anno_pool(4);
             auto img_dtos_f = std::async(std::launch::async, [this] {
                 return getAllImage();
             });
@@ -197,7 +197,7 @@ namespace ender_label::service::dataset {
                 });
             }
             anno_pool.join();
-            boost::asio::thread_pool img_pool(16);
+            boost::asio::thread_pool img_pool(4);
             const auto img_dtos = img_dtos_f.get();
             for (const auto &img_dto: *img_dtos | std::views::filter([&annotated_only, &img_ids](auto &x) {
                 if (annotated_only) {
