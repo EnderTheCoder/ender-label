@@ -889,6 +889,17 @@ namespace ender_label::controller {
             return createDtoResponse(Status::CODE_200, resp);
         }
 
+        ENDPOINT("GET", "/dataset/task/{task_id}/image/{image_id}/anno/state", getImgAnnoState, AUTH_HEADER,
+                 PATH(Int32, task_id), PATH(Int64, image_id)) {
+            AUTH
+            const auto resp = SimpleDataResponseDto<Boolean>::createShared();
+            using namespace dataset::task;
+            const auto task = BaseTask::getById<BaseTask>(task_id);
+            OATPP_ASSERT_HTTP(task != nullptr, Status::CODE_404, "Requested task not found.")
+            resp->data = task->getIsImgAnnotated(image_id);
+            return createDtoResponse(Status::CODE_200, resp);
+        }
+
         ENDPOINT("GET", "/dataset/task/{task_id}/image/id/all", getAllImgIdInTask, AUTH_HEADER,
                  PATH(Int32, task_id)) {
             AUTH
