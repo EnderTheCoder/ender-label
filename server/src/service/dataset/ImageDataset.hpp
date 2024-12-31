@@ -180,20 +180,24 @@ namespace ender_label::service::dataset {
             std::mutex img_ids_lck;
             for (const auto &anno_dto: *anno_dtos) {
                 boost::asio::post(anno_pool, [task_type, &img_ids, anno_dto, &label_root, &img_ids_lck]() {
-                    String anno_str{};
-                    switch (task_type) {
-                        case TaskType::segment: {
-                            const auto anno = annotation::SegmentationAnnotation::createShared<>(anno_dto);
-                            anno_str = anno->toYolo();
-                            break;
+                    try {
+                        String anno_str{};
+                        switch (task_type) {
+                            case TaskType::segment: {
+                                const auto anno = annotation::SegmentationAnnotation::createShared<>(anno_dto);
+                                anno_str = anno->toYolo();
+                                break;
+                            }
+                            default:
+                                throw std::runtime_error("Task type is not implemented.");
+                        } {
+                            std::lock_guard guard(img_ids_lck);
+                            img_ids.emplace(anno_dto->img_id);
                         }
-                        default:
-                            throw std::runtime_error("Task type is not implemented.");
-                    } {
-                        std::lock_guard guard(img_ids_lck);
-                        img_ids.emplace(anno_dto->img_id);
+                        anno_str.saveToFile((label_root / (std::to_string(anno_dto->img_id) + ".txt")).c_str());
+                    } catch (std::exception &e) {
+                        OATPP_LOGE("EXPORT", "Error while exporting image[id=%lld] annotation[id=%lld]: %s", *anno_dto->img_id, *anno_dto->id, e.what())
                     }
-                    anno_str.saveToFile((label_root / (std::to_string(anno_dto->img_id) + ".txt")).c_str());
                 });
             }
             anno_pool.join();
