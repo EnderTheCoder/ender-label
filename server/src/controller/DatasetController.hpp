@@ -896,7 +896,21 @@ namespace ender_label::controller {
             using namespace dataset::task;
             const auto task = BaseTask::getById<BaseTask>(task_id);
             OATPP_ASSERT_HTTP(task != nullptr, Status::CODE_404, "Requested task not found.")
-            resp->data = task->getIsImgAnnotated(image_id);
+            switch (const auto task_dto = task->getDto(); *task_dto->anno_task_type) {
+                case AnnoTaskType::designated_image: {
+                    const auto d_task = DesignatedImageTask::createShared<DesignatedImageTask>(task->getDto());
+                    resp->data = d_task->getIsImgAnnotated(image_id);
+                    break;
+                }
+                case AnnoTaskType::quantity: {
+                    const auto q_task = QuantityTask::createShared<QuantityTask>(task->getDto());
+                    resp->data = q_task->getIsImgAnnotated(image_id);
+                    break;
+                }
+                default:
+                    throw web::protocol::http::HttpError(Status::CODE_500, "Error cant get task type.");
+                break;
+            }
             return createDtoResponse(Status::CODE_200, resp);
         }
 
