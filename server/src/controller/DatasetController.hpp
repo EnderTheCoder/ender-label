@@ -817,7 +817,20 @@ namespace ender_label::controller {
                     const auto img_dto = img->getDto();
                     const auto n_dto = data::ImageWithTaskStateDto::createShared();
                     util::Util::copyToUpper(img_dto, n_dto);
-                    n_dto->task_anno_state = task->getIsImgAnnotated(n_dto->id);
+                    switch (*task->getDto()->anno_task_type) {
+                        case AnnoTaskType::designated_image: {
+                            const auto d_task = DesignatedImageTask::createSharedR(task->getDto());
+                            n_dto->task_anno_state = d_task->getIsImgAnnotated(n_dto->id);
+                            break;
+                        }
+                        case AnnoTaskType::quantity: {
+                            const auto q_task = QuantityTask::createSharedR(task->getDto());
+                            n_dto->task_anno_state = q_task->getIsImgAnnotated(n_dto->id);
+                            break;
+                        }
+                        default:
+                            break;
+                    }
                     image_info_dtos->push_back(n_dto);
                 }
             }

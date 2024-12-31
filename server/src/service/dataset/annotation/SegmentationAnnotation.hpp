@@ -61,6 +61,9 @@ namespace ender_label::service::dataset::annotation {
             for (const auto anno = this->get_annotation(); const auto &polygon: *anno->polygons) {
                 ss << clsIdToSerial(polygon->cls_id) << " ";
                 for (const auto &point: *polygon->normalized_points) {
+                    if (point->size() != 2 or point[0] == nullptr or point[1] == nullptr) {
+                        throw std::runtime_error("Failed to export yolo on anno[id="+std::to_string(*getId())+"]: Invalid point size or point is null.");
+                    }
                     ss << point->front() << " " << point->back() << " ";
                 }
                 ss << "\n";
