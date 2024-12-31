@@ -10,7 +10,7 @@
 #include OATPP_CODEGEN_BEGIN(DTO)
 
 namespace ender_label::dto::data {
-    class ImageDto final : public oatpp::DTO {
+    class ImageDto : public oatpp::DTO {
         DTO_INIT(ImageDto, DTO)
 
         DTO_FIELD(Int64, id);
@@ -49,6 +49,16 @@ namespace ender_label::dto::data {
 
         DTO_FIELD_INFO(md5_hash_32) {
             info->description = "md5哈希校验值，32位";
+        }
+    };
+
+    class ImageWithTaskStateDto final : public ImageDto {
+        DTO_INIT(ImageWithTaskStateDto, ImageDto)
+
+        DTO_FIELD(Boolean, task_anno_state);
+
+        DTO_FIELD_INFO(task_anno_state) {
+            info->description = "是否已经在该任务中标注过";
         }
     };
 

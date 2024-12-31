@@ -140,6 +140,17 @@ namespace ender_label::service::dataset::task {
             return AnnotationLog::toDtoList(AnnotationLog::getList(query));
         }
 
+        virtual auto getIsImgAnnotated(const Int64 &img_id) -> bool {
+            const auto logs = getLogsWithImg(img_id);
+            const auto config = this->readTaskDto()->config;
+            return std::ranges::any_of(logs->begin(), logs->end(), [&config](auto &x) {
+                return (x->log_type == AnnoLogType::READ and config->match_read) or
+                       (x->log_type == AnnoLogType::CREATE and config->match_create) or
+                       (x->log_type == AnnoLogType::UPDATE and config->match_update) or
+                       (x->log_type == AnnoLogType::DELETE and config->match_delete);
+            });
+        }
+
         void progress(const float percentage) {
             const auto dto = AnnotationTaskDto::createShared();
             dto->progress = percentage;

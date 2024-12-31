@@ -589,7 +589,6 @@ namespace ender_label::controller {
                                     point->normalized_y > 0 and
                                     point->normalized_y < 1,
                                     Status::CODE_400, "Exceed normalized points axis range limit [0, 1]")
-
                             }
                         }
 
@@ -600,6 +599,9 @@ namespace ender_label::controller {
                 throw oatpp::web::protocol::http::HttpError(
                     Status::CODE_400,
                     "Unparsable wrong json format for field 'raw_json'." + std::string(e.what()));
+            } catch (oatpp::web::protocol::http::HttpError &e) {
+                e.getMessage() = e.getMessage() + "; Image[id=" + std::to_string(*req->img_id) + "]; Annotation[id=" +
+                                 std::to_string(req->id == nullptr ? 0 : *req->id) + "];";
             }
             req->owner_id = USER->getId();
             const auto img = dataset::Image::getById(req->img_id);
@@ -785,7 +787,7 @@ namespace ender_label::controller {
                  PATH(Int32, task_id), QUERY(Int32, page), QUERY(Int32, size)) {
             AUTH
             using namespace dataset::task;
-            const auto resp = PaginationResponseDto<Object<data::ImageDto> >::createShared();
+            const auto resp = PaginationResponseDto<Object<data::ImageWithTaskStateDto> >::createShared();
             const auto task = BaseTask::getById<BaseTask>(task_id);
             OATPP_ASSERT_HTTP(task != nullptr, Status::CODE_404, "Requested task not found.")
             auto ids = Vector<Int64>::createShared();
@@ -803,16 +805,20 @@ namespace ender_label::controller {
                 default:
                     break;
             }
-            auto image_info_dtos = Vector<Object<data::ImageDto> >::createShared();
+            const auto image_info_dtos = Vector<Object<data::ImageWithTaskStateDto> >::createShared();
             const auto offset = BaseTask::getPaginationOffset(page, size);
-            if (auto it_begin = ids->begin() + offset; it_begin < ids->end()) {
+            if (const auto it_begin = ids->begin() + offset; it_begin < ids->end()) {
                 for (auto it = it_begin; it != ids->end() and it - it_begin != size; ++it) {
                     auto img = dataset::Image::getById(*it);
                     if (img == nullptr) {
                         OATPP_LOGE("TASK", "Image[id:%ld] in task[id:%d] not found", **it, *task_id)
                         continue;
                     }
-                    image_info_dtos->push_back(img->getDto());
+                    const auto img_dto = img->getDto();
+                    const auto n_dto = data::ImageWithTaskStateDto::createShared();
+                    util::Util::copyToUpper(img_dto, n_dto);
+                    n_dto->task_anno_state = task->getIsImgAnnotated(n_dto->id);
+                    image_info_dtos->push_back(n_dto);
                 }
             }
             resp->data = image_info_dtos;
