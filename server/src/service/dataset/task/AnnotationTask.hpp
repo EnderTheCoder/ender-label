@@ -224,6 +224,10 @@ namespace ender_label::service::dataset::task {
             return std::make_shared<DesignatedImageTask>(dto);
         }
 
+        auto getIsImgAnnotated(const Int64 &img_id) -> bool override {
+            return this->readTaskDto()->img_ids->contains(img_id);
+        }
+
         auto getImageIds() -> Vector<Int64> override {
             const auto task_data_dto = this->readTaskDto();
             const auto ids = Vector<Int64>::createShared();
