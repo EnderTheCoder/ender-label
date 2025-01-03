@@ -426,7 +426,7 @@ namespace ender_label::controller {
                                                         "The image[id:" + std::to_string(*image_id) +
                                                         "] is not in the dataset.");
         image_in_dataset_ok:
-            auto resp = ArrayResponseDto<oatpp::Object<data::annotation::AnnotationDto> >::createShared();
+            const auto resp = ArrayResponseDto<oatpp::Object<data::annotation::AnnotationDto> >::createShared();
             using namespace dataset::annotation;
             resp->data = {};
             for (const auto anno_list = Annotation::toDtoList(Annotation::getByField("img_id", image_id));
@@ -809,7 +809,9 @@ namespace ender_label::controller {
             const auto offset = BaseTask::getPaginationOffset(page, size);
             if (const auto it_begin = ids->begin() + offset; it_begin < ids->end()) {
                 for (auto it = it_begin; it != ids->end() and it - it_begin != size; ++it) {
-                    auto img = dataset::Image::getById(*it);
+                    OATPP_ASSERT_HTTP(*it != nullptr, Status::CODE_500,
+                                      "Critical failure in task["+std::to_string(*task_id)+"] data: null img id")
+                    const auto img = dataset::Image::getById(*it);
                     if (img == nullptr) {
                         OATPP_LOGE("TASK", "Image[id:%ld] in task[id:%d] not found", **it, *task_id)
                         continue;
@@ -922,7 +924,7 @@ namespace ender_label::controller {
                 }
                 default:
                     throw web::protocol::http::HttpError(Status::CODE_500, "Error cant get task type.");
-                break;
+                    break;
             }
             return createDtoResponse(Status::CODE_200, resp);
         }
