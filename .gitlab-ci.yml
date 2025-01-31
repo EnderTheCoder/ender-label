@@ -2,7 +2,7 @@ stages:
   - build
 
 build-linux-job:
-  image: enderthecoder/oatpp-dev:1.0
+  image: enderthecoder/oatpp-dev:latest
   stage: build
   script:
     - echo "Running build"
