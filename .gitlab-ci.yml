@@ -7,7 +7,7 @@ build-linux-job:
   script:
     - echo "Running build"
     - mkdir server/build-linux && cd server/build-linux
-    - cmake -G "Ninja Multi-Config"  ..
+    - cmake -G "Ninja Multi-Config"  -DCMAKE_MAKE_PROGRAM=/usr/bin/ninja -DCMAKE_C_COMPILER=/usr/bin/gcc-14 -DCMAKE_CXX_COMPILER=/usr/bin/g++-14 ..
     - cmake --build . -j --config Release
   artifacts:
     expire_in: 1 week
