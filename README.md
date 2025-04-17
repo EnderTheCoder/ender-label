@@ -44,3 +44,30 @@ graph TD
 | **Linux** | Ubuntu 20.04/22.04 LTS<br>CentOS 7/8 | CMake 3.21+                     | APT/YUM            |
 | Windows   | Windows 10/11                        | Visual Studio 2022<br>MinGW-w64 | vcpkg/msys2        |
 | macOS     | Monterey (12.6+)                     | Xcode 14+<br>Homebrew           | Homebrew           |
+
+## docker deploy
+
+### build from scratch
+
+```shell
+docker build -t enderthecoder/ender-label-backend .
+```
+
+### use pre-built image
+
+Notice that pre-built image does not contain pgsql server, you need to specify pgsql server addr by yourself.
+
+```shell
+docker pull enderthecoder/ender-label-backend:latest
+```
+
+### startup example
+
+```shell
+docker run -d --name ender-label-backend \
+-v /path/to/static/root/:/static/ \
+-v /path/to/config/file:/app/resources/config.json \
+-v /path/to/data/root/:/data \
+-p 24778:24778 \
+enderthecoder/ender-label-backend
+```
