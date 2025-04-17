@@ -67,7 +67,7 @@ docker pull enderthecoder/ender-label-backend:latest
 docker run -d --name ender-label-backend \
 -v /path/to/static/root/:/static/ \
 -v /path/to/config/file:/app/resources/config.json \
--v /path/to/data/root/:/data \
+-v /path/to/data/root/:/data/ \
 -p 24778:24778 \
 enderthecoder/ender-label-backend
 ```
