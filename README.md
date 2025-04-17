@@ -45,15 +45,15 @@ graph TD
 | Windows   | Windows 10/11                        | Visual Studio 2022<br>MinGW-w64 | vcpkg/msys2        |
 | macOS     | Monterey (12.6+)                     | Xcode 14+<br>Homebrew           | Homebrew           |
 
-## docker deploy
+## Docker Deployment
 
-### build from scratch
+### Build From Scratch
 
 ```shell
 docker build -t enderthecoder/ender-label-backend .
 ```
 
-### use pre-built image
+### Use Pre-built Image
 
 Notice that pre-built image does not contain pgsql server, you need to specify pgsql server addr by yourself.
 
@@ -61,7 +61,7 @@ Notice that pre-built image does not contain pgsql server, you need to specify p
 docker pull enderthecoder/ender-label-backend:latest
 ```
 
-### startup example
+### Startup Example
 
 ```shell
 docker run -d --name ender-label-backend \
