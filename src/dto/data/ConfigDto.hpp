@@ -19,7 +19,6 @@ namespace ender_label::dto::data {
         DTO_FIELD(Int32, cache_time);
         DTO_FIELD(String, redis);
         DTO_FIELD(String, config_type);
-        DTO_FIELD(String, callback);
         DTO_FIELD(String, migrations);
         DTO_FIELD(String, static_root);
     };

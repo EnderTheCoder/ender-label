@@ -8,7 +8,6 @@
     "storage": "./data",
     "redis": "tcp://127.0.0.1:6379",
     "cache_time": 120,
-    "callback": "https://test.ender.cool",
     "static_root": "/data0/remote_projects/ender-label/web/dist"
   },
   "production@default": {
@@ -20,7 +19,6 @@
     "storage": "/data",
     "redis": "tcp://127.0.0.1:6379",
     "cache_time": 120,
-    "callback": "https://test.ender.cool",
-    "static_root": "/data0/remote_projects/ender-label/web/dist"
+    "static_root": "/static"
   }
 }
