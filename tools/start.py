@@ -2,7 +2,7 @@ import os
 
 project_name = input('input a project name to start:')
 
-for root, dirs, files in os.walk('.'):
+for root, dirs, files in os.walk(''):
     for file in files:
         if file.endswith('.hpp') or file.endswith('.cpp') or file == 'CMakeLists.txt':
             with open(os.path.join(root, file), 'r+') as f:

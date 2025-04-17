@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.22)
 set(project_name ender_label)
 project(${project_name} VERSION 0.1.0)
-file(GLOB LIBS_PATH_MAIN ./src/*.hpp)
+file(GLOB LIBS_PATH_MAIN src/*.hpp)
 
 set(CMAKE_CXX_STANDARD 23)
 add_library(${project_name}-lib)
@@ -16,7 +16,7 @@ find_package(oatpp-websocket 1.3.0 REQUIRED)
 find_package(OpenCV REQUIRED)
 
 find_package(Boost 1.70.0 COMPONENTS ALL)
-find_package(OpenSSL REQUIRED)
+find_package(OpenSSL 3.0 REQUIRED)
 
 target_link_libraries(${project_name}-lib
         PUBLIC oatpp::oatpp
