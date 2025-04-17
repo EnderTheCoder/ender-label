@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.22)
-set(project_name ender_label)
+set(project_name ender-label)
 project(${project_name} VERSION 0.1.0)
 file(GLOB LIBS_PATH_MAIN src/*.hpp)
 

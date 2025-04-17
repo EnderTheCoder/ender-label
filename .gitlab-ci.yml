@@ -16,3 +16,10 @@ build-linux-job:
       - server/build-linux/Release/ender_label-exe
   tags:
     - docker
+build-docker-job:
+  stage: build
+  script:
+    - docker build --pull -t enderthecoder/ender-label-backend .
+    - docker push enderthecoder/ender-label-backend
+  tags:
+    - linux

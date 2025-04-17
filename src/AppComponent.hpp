@@ -36,8 +36,7 @@ namespace ender_label::component {
 
             const char *config_path = std::getenv("CONFIG_PATH"); // first read from env variable
             if (config_path == nullptr) {
-                config_path = m_cmdArgs.getNamedArgumentValue("--config",
-                                                              "../resources/config.json");
+                config_path = m_cmdArgs.getNamedArgumentValue("--config", "./resources/config.json");
                 // if no env variable get from command line
             }
 
