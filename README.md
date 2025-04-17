@@ -41,7 +41,7 @@ graph TD
 
 | OS        | Tested Versions                      | Build System                    | Package Management |
 |-----------|--------------------------------------|---------------------------------|--------------------|
-| **Linux** | Ubuntu 20.04/22.04 LTS<br>CentOS 7/8 | CMake 3.21+                     | APT/YUM            |
+| **Linux** | Ubuntu 20.04/22.04 LTS<br>CentOS 7/8 | CMake 3.22+                     | APT/YUM            |
 | Windows   | Windows 10/11                        | Visual Studio 2022<br>MinGW-w64 | vcpkg/msys2        |
 | macOS     | Monterey (12.6+)                     | Xcode 14+<br>Homebrew           | Homebrew           |
 
