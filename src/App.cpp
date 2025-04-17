@@ -26,7 +26,7 @@ void run(const oatpp::base::CommandLineArguments &args) {
     ender_label::service::processor::BackgroundImageProcessor::initThumbnailDir();
     auto img_processor = ender_label::service::processor::BackgroundImageProcessor::createShared();
     img_processor->start();
-    OATPP_LOGI("Version", VERSION)
+    OATPP_LOGI("Version", PROJECT_VERSION)
     OATPP_LOGD("Server", "Running on %s:%s",
                serviceComponent.serverConnectionProvider.getObject()->getProperty("host").toString()->c_str(),
                serviceComponent.serverConnectionProvider.getObject()->getProperty("port").toString()->c_str());

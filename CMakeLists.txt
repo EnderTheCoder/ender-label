@@ -30,17 +30,9 @@ target_link_libraries(${project_name}-lib
         PUBLIC ${OpenCV_LIBS}
 )
 
-# 读取版本号文件的内容
-file(READ version.txt VERSION)
-
-# 去除换行符和空格
-string(STRIP ${VERSION} VERSION)
-
 add_definitions(
         # Path to oatpp-swagger res files.
         -DOATPP_SWAGGER_RES_PATH="${oatpp-swagger_INCLUDE_DIRS}../bin/oatpp-swagger/res"
-
-        -DVERSION="${VERSION}"
 )
 
 add_executable(${project_name}-exe
