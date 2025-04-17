@@ -20,7 +20,7 @@ namespace ender_label::component {
             builder
                     .setTitle("ender_label swagger ui service")
                     .setDescription("Another high performance C++ backend project powered by Oat++")
-                    .setVersion(VERSION)
+                    .setVersion(PROJECT_VERSION)
                     .setContactName("EnderTheCoder")
                     .setContactUrl("https://github.com/EnderTheCoder")
                     .setLicenseName("All rights reserved")
