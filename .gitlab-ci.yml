@@ -6,14 +6,14 @@ build-linux-job:
   stage: build
   script:
     - echo "Running build"
-    - mkdir server/build-linux && cd server/build-linux
+    - mkdir build-linux && cd build-linux
     - cmake -G "Ninja Multi-Config"  -DCMAKE_MAKE_PROGRAM=/usr/bin/ninja -DCMAKE_C_COMPILER=/usr/bin/gcc-14 -DCMAKE_CXX_COMPILER=/usr/bin/g++-14 ..
     - cmake --build . -j --config Release
   artifacts:
     expire_in: 1 week
     name: linux-gcc-x64-standalone-server-${CI_PIPELINE_ID}
     paths:
-      - server/build-linux/Release/ender_label-exe
+      - build-linux/Release/ender-label-exe
   tags:
     - docker
 build-docker-job:
